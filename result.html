@@ -1,90 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Skill Centerr · परिणाम कार्ड</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skill Centerr | परिणाम कार्ड</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-    h1 { color: #4F0A5A; text-align: center; }
-    .card { background: white; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; padding: 20px; }
-    .kv { display: grid; grid-template-columns: 150px 1fr; margin: 8px 0; }
-    .kv .k { font-weight: bold; color: #4F0A5A; }
-    .marks table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .marks th, .marks td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    .marks th { background: #ece2f0; color: #4F0A5A; }
-    .btn { margin-top: 15px; background: #4F0A5A; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; }
-    .btn:hover { background: #6a0a7d; }
-    .notfound { color: red; text-align: center; margin-top: 20px; }
+    body { font-family: Arial, sans-serif; background:#f9f6fb; margin:0; padding:0; color:#300049; }
+    .wrap { max-width:900px; margin:40px auto; background:white; border-radius:18px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+    h1 { text-align:center; color:#4F0A5A; margin-bottom:10px; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; }
+    th, td { border:1px solid #ddd; padding:8px; }
+    th { background:#f3e6f9; color:#4F0A5A; }
+    .center { text-align:center; color:red; font-weight:bold; }
+    .btn { background:#4F0A5A; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; margin-top:12px; }
   </style>
 </head>
 <body>
-  <h1>Skill Centerr · परिणाम कार्ड</h1>
-  <div class="card" id="card">
-    <div id="info"></div>
-    <div class="marks">
-      <table>
-        <thead><tr><th>विषय</th><th>अंक</th></tr></thead>
-        <tbody id="marks"></tbody>
-        <tfoot>
-          <tr><th>कुल</th><td id="total">—</td></tr>
-          <tr><th>कुल में से</th><td id="outof">—</td></tr>
-          <tr><th>ग्रेड</th><td id="grade">—</td></tr>
-        </tfoot>
-      </table>
-    </div>
-    <p id="date" style="margin-top:12px;"></p>
+  <div class="wrap">
+    <h1>Skill Centerr · परिणाम कार्ड</h1>
+    <div id="result"></div>
     <button class="btn" onclick="window.print()">प्रिंट / PDF</button>
   </div>
 
   <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
-    const idParam = new URLSearchParams(window.location.search).get('id');
+    const params = new URLSearchParams(window.location.search);
+    const studentId = params.get('id');
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv';
 
     async function loadResult() {
-      try {
-        const res = await fetch(sheetURL);
-        const csv = await res.text();
-        const rows = csv.split("\n").map(r => r.split(","));
-        const headers = rows[0].map(h => h.trim());
-        const records = rows.slice(1).map(r => {
-          const obj = {};
-          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
-          return obj;
-        });
+      const res = await fetch(sheetUrl);
+      const csvText = await res.text();
+      const rows = csvText.trim().split('\n').map(r => r.split(','));
+      const headers = rows.shift().map(h => h.trim());
+      const data = rows.map(r => Object.fromEntries(r.map((val, i) => [headers[i], val.trim()])));
+      const student = data.find(s => s['Student id'] === studentId);
 
-        const rec = records.find(r => r["Student id"] === idParam);
-        if (!rec) {
-          document.getElementById("info").innerHTML = '<p class="notfound">अमान्य या रिकॉर्ड नहीं मिला</p>';
-          return;
-        }
-
-        document.getElementById("info").innerHTML = `
-          <div class="kv"><div class="k">नाम</div><div>${rec["Name"]}</div></div>
-          <div class="kv"><div class="k">पिता का नाम</div><div>${rec["Father Name"]}</div></div>
-          <div class="kv"><div class="k">आईडी</div><div>${rec["Student id"]}</div></div>
-          <div class="kv"><div class="k">रोल नंबर</div><div>${rec["Roll No"]}</div></div>
-          <div class="kv"><div class="k">कक्षा</div><div>${rec["Class"]}</div></div>
-          <div class="kv"><div class="k">बैच</div><div>${rec["Batch"]}</div></div>
-          <div class="kv"><div class="k">कोर्स</div><div>${rec["Course"]}</div></div>
-        `;
-
-        const tbody = document.getElementById("marks");
-        tbody.innerHTML = `
-          <tr><td>${rec["Subject 1"]}</td><td>${rec["Marks 1"]}</td></tr>
-          <tr><td>${rec["Subject 2"]}</td><td>${rec["Marks 2"]}</td></tr>
-          <tr><td>${rec["Subject 3"]}</td><td>${rec["Marks 3"]}</td></tr>
-        `;
-
-        document.getElementById("total").textContent = rec["Total"];
-        document.getElementById("outof").textContent = rec["Out of"];
-        document.getElementById("grade").textContent = rec["Grade"];
-        document.getElementById("date").textContent = "परिणाम तिथि: " + rec["Date of Issue"];
-
-      } catch (err) {
-        document.getElementById("info").innerHTML = `<p class="notfound">डेटा लोड करने में समस्या</p>`;
-        console.error("Error loading sheet:", err);
+      const div = document.getElementById('result');
+      if (!student) {
+        div.innerHTML = `<p class="center">अमान्य या रिकॉर्ड नहीं मिला</p>`;
+        return;
       }
+
+      div.innerHTML = `
+        <table>
+          <tr><th>नाम</th><td>${student['Name']}</td></tr>
+          <tr><th>पिता का नाम</th><td>${student['Father Name']}</td></tr>
+          <tr><th>आईडी</th><td>${student['Student id']}</td></tr>
+          <tr><th>कक्षा</th><td>${student['Class']}</td></tr>
+          <tr><th>बैच</th><td>${student['Batch']}</td></tr>
+          <tr><th>कोर्स</th><td>${student['Course']}</td></tr>
+          <tr><th>परिणाम तिथि</th><td>${student['Date of Issue']}</td></tr>
+        </table>
+        <h3>विषय और अंक</h3>
+        <table>
+          <tr><th>${student['Subject 1']}</th><td>${student['Marks 1']}</td></tr>
+          <tr><th>${student['Subject 2']}</th><td>${student['Marks 2']}</td></tr>
+          <tr><th>${student['Subject 3']}</th><td>${student['Marks 3']}</td></tr>
+          <tr><th>कुल</th><td>${student['Total']}</td></tr>
+          <tr><th>कुल में से</th><td>${student['Out of']}</td></tr>
+          <tr><th>ग्रेड</th><td>${student['Grade']}</td></tr>
+        </table>
+      `;
     }
     loadResult();
   </script>
