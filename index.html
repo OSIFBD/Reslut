@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎓 Result | Skill Centerr</title>
+  <title>Skill Centerr · परिणाम कार्ड</title>
   <style>
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(135deg, #f3e8ff, #fdf2f8);
+      font-family: "Noto Sans Devanagari", Arial, sans-serif;
+      background: #faf5ff;
       text-align: center;
-      padding: 30px;
+      padding: 20px;
     }
     h2 {
       color: #4a148c;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
+    p { color: #333; }
     #reader {
       width: 320px;
       margin: 20px auto;
@@ -29,34 +30,50 @@
       margin: 30px auto;
       border-radius: 16px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      display: inline-block;
+      max-width: 700px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #e1bee7;
+      padding: 10px;
       text-align: left;
-      max-width: 400px;
-      line-height: 1.6;
     }
-    p { margin: 6px 0; }
-    .notfound {
-      color: red;
-      font-weight: bold;
+    th {
+      background: #f3e5f5;
+      color: #4a148c;
     }
-    footer {
-      margin-top: 30px;
-      font-size: 13px;
-      color: #666;
+    .buttons { margin-top: 20px; }
+    button {
+      background: #7b1fa2;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
     }
+    button:hover { background: #9c27b0; }
+    .notfound { color: red; font-weight: bold; }
+    footer { margin-top: 25px; color: #777; font-size: 13px; }
   </style>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-  <h2>🎓 Skill Centerr Result</h2>
+
+  <h2>🎓 Skill Centerr · परिणाम कार्ड</h2>
+  <p>QR स्कैन करने के बाद यह पेज खुलता है। नीचे आपकी पूर्ण जानकारी व परिणाम दिया है।</p>
+
   <div id="reader"></div>
   <div id="result"></div>
 
 <script>
-  // 👇 आपका Google Sheet CSV लिंक
+  // 🔹 अपनी Google Sheet का CSV लिंक डालें
   const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
 
-  // 🔹 Google Sheet डेटा प्राप्त करना
   async function fetchData() {
     const res = await fetch(sheetURL);
     const data = await res.text();
@@ -70,33 +87,75 @@
     return records;
   }
 
-  // 🔹 रिज़ल्ट दिखाना
   function showData(record) {
-    document.getElementById("reader").style.display = "none"; // स्कैनर छिपा दें
+    document.getElementById("reader").style.display = "none";
+    let subjectsHTML = "";
+
+    for (let i = 1; i <= 10; i++) {  // 10 तक subjects की जगह
+      const subj = record[`Subject ${i}`];
+      const marks = record[`Marks ${i}`];
+      if (subj && marks) {
+        subjectsHTML += `<tr><td>${subj}</td><td>${marks}</td></tr>`;
+      }
+    }
+
     document.getElementById("result").innerHTML = `
       <div class="card">
-        <h3>${record["Name"]}</h3>
-        <p><b>Father Name:</b> ${record["Father Name"]}</p>
-        <p><b>Student ID:</b> ${record["Student id"]}</p>
-        <p><b>Course:</b> ${record["Course"]}</p>
-        <p><b>Grade:</b> ${record["Grade"]}</p>
-        <p><b>Date of Issue:</b> ${record["Date of Issue"]}</p>
-      </div>`;
+        <table>
+          <tr><th>विद्यार्थी</th><td>${record["Name"]}</td></tr>
+          <tr><th>पिता का नाम</th><td>${record["Father Name"]}</td></tr>
+          <tr><th>आईडी</th><td>${record["Student id"]}</td></tr>
+          <tr><th>रोल</th><td>${record["Roll No"]}</td></tr>
+          <tr><th>कक्षा</th><td>${record["Class"]}</td></tr>
+          <tr><th>बैच</th><td>${record["Batch"]}</td></tr>
+          <tr><th>कोर्स</th><td>${record["Course"]}</td></tr>
+          <tr><th>परिणाम तिथि</th><td>${record["Date of Issue"]}</td></tr>
+        </table>
+
+        <h3 style="margin-top:20px; color:#6a1b9a;">विषयवार अंक</h3>
+        <table>
+          <tr><th>विषय</th><th>अंक</th></tr>
+          ${subjectsHTML || `<tr><td colspan="2">अंक डेटा उपलब्ध नहीं</td></tr>`}
+          <tr><th>कुल</th><td>${record["Total"] || "—"}</td></tr>
+          <tr><th>कुल में से</th><td>${record["Out of"] || "—"}</td></tr>
+          <tr><th>ग्रेड</th><td>${record["Grade"] || "—"}</td></tr>
+        </table>
+
+        <div class="buttons">
+          <button onclick="window.print()">🖨️ प्रिंट / PDF</button>
+          <button onclick="shareLink()">🔗 लिंक शेयर करें</button>
+          <button onclick="copyLink()">📋 लिंक कॉपी करें</button>
+        </div>
+      </div>
+    `;
   }
 
-  // 🔹 रिज़ल्ट नहीं मिला
   function showNotFound(id) {
     document.getElementById("result").innerHTML =
-      `<p class='notfound'>❌ Result not found for ID: ${id}</p>`;
+      `<p class='notfound'>❌ रिकॉर्ड नहीं मिला (${id})</p>`;
   }
 
-  // 🔹 URL Parameter से ID निकालना
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("लिंक कॉपी हो गया!");
+  }
+
+  function shareLink() {
+    if (navigator.share) {
+      navigator.share({
+        title: "Result - Skill Centerr",
+        url: window.location.href
+      });
+    } else {
+      copyLink();
+    }
+  }
+
   function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
   }
 
-  // 🔹 QR स्कैन सफल होने पर
   async function onScanSuccess(qrCodeMessage) {
     const records = await fetchData();
     const qrValue = qrCodeMessage.trim().toLowerCase();
@@ -105,17 +164,14 @@
     else showNotFound(qrCodeMessage);
   }
 
-  // 🔹 मुख्य लॉजिक: URL से ID या स्कैनर
   (async () => {
     const id = getQueryParam("id");
     if (id) {
-      // URL में id मिली → सीधा रिज़ल्ट दिखाओ
       const records = await fetchData();
       const record = records.find(r => (r["Student id"] || "").toLowerCase() === id.toLowerCase());
       if (record) showData(record);
       else showNotFound(id);
     } else {
-      // URL में id नहीं मिली → स्कैनर दिखाओ
       const html5QrCode = new Html5Qrcode("reader");
       html5QrCode.start(
         { facingMode: "environment" },
