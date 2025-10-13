@@ -1,189 +1,66 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Skill Centerr · परिणाम कार्ड</title>
   <style>
-    body {
-      font-family: "Noto Sans Devanagari", Arial, sans-serif;
-      background: #faf5ff;
-      text-align: center;
-      padding: 20px;
-    }
-    h2 {
-      color: #4a148c;
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-    p { color: #333; }
-    #reader {
-      width: 320px;
-      margin: 20px auto;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      margin: 30px auto;
-      border-radius: 16px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      max-width: 700px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #e1bee7;
-      padding: 10px;
-      text-align: left;
-    }
-    th {
-      background: #f3e5f5;
-      color: #4a148c;
-    }
-    .buttons { margin-top: 20px; }
-    button {
-      background: #7b1fa2;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    button:hover { background: #9c27b0; }
-    .notfound { color: red; font-weight: bold; }
-    footer { margin-top: 25px; color: #777; font-size: 13px; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; color: #333; }
+    .wrap { max-width: 800px; margin: 30px auto; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #4F0A5A; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background: #f3e6f9; color: #4F0A5A; }
+    .notfound { color: red; text-align: center; margin: 20px 0; font-weight: bold; }
+    .btn { margin-top: 20px; background: #4F0A5A; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
   </style>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Skill Centerr · परिणाम कार्ड</h1>
+    <div id="result"></div>
+    <button class="btn" onclick="window.print()">प्रिंट / PDF</button>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const studentId = params.get('id');
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
 
-  <h2>🎓 Skill Centerr · परिणाम कार्ड</h2>
-  <p>QR स्कैन करने के बाद यह पेज खुलता है। नीचे आपकी पूर्ण जानकारी व परिणाम दिया है।</p>
+    async function load() {
+      try {
+        const res = await fetch(sheetUrl);
+        const text = await res.text();
+        const rows = text.trim().split('\n').map(r => r.split(','));
+        const headers = rows.shift().map(h => h.trim());
+        const data = rows.map(r => {
+          const obj = {};
+          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+          return obj;
+        });
 
-  <div id="reader"></div>
-  <div id="result"></div>
+        const rec = data.find(r => r["Student id"] === studentId);
+        const container = document.getElementById("result");
+        if (!rec) {
+          container.innerHTML = `<p class="notfound">अमान्य या रिकॉर्ड नहीं मिला</p>`;
+          return;
+        }
 
-<script>
-  // 🔹 अपनी Google Sheet का CSV लिंक डालें
-  const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
-
-  async function fetchData() {
-    const res = await fetch(sheetURL);
-    const data = await res.text();
-    const rows = data.split("\n").map(r => r.split(","));
-    const headers = rows[0].map(h => h.trim());
-    const records = rows.slice(1).map(r => {
-      const obj = {};
-      headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
-      return obj;
-    });
-    return records;
-  }
-
-  function showData(record) {
-    document.getElementById("reader").style.display = "none";
-    let subjectsHTML = "";
-
-    for (let i = 1; i <= 10; i++) {  // 10 तक subjects की जगह
-      const subj = record[`Subject ${i}`];
-      const marks = record[`Marks ${i}`];
-      if (subj && marks) {
-        subjectsHTML += `<tr><td>${subj}</td><td>${marks}</td></tr>`;
+        container.innerHTML = `
+          <table>
+            <tr><th>नाम</th><td>${rec["Name"]}</td></tr>
+            <tr><th>पिता का नाम</th><td>${rec["Father Name"]}</td></tr>
+            <tr><th>स्टूडेंट ID</th><td>${rec["Student id"]}</td></tr>
+            <tr><th>कोर्स</th><td>${rec["Course"]}</td></tr>
+            <tr><th>ग्रेड</th><td>${rec["Grade"]}</td></tr>
+            <tr><th>परिणाम तिथि</th><td>${rec["Date of Issue"]}</td></tr>
+          </table>
+        `;
+      } catch (err) {
+        document.getElementById("result").innerHTML = `<p class="notfound">डेटा लोड करने में त्रुटि</p>`;
+        console.error(err);
       }
     }
-
-    document.getElementById("result").innerHTML = `
-      <div class="card">
-        <table>
-          <tr><th>विद्यार्थी</th><td>${record["Name"]}</td></tr>
-          <tr><th>पिता का नाम</th><td>${record["Father Name"]}</td></tr>
-          <tr><th>आईडी</th><td>${record["Student id"]}</td></tr>
-          <tr><th>रोल</th><td>${record["Roll No"]}</td></tr>
-          <tr><th>कक्षा</th><td>${record["Class"]}</td></tr>
-          <tr><th>बैच</th><td>${record["Batch"]}</td></tr>
-          <tr><th>कोर्स</th><td>${record["Course"]}</td></tr>
-          <tr><th>परिणाम तिथि</th><td>${record["Date of Issue"]}</td></tr>
-        </table>
-
-        <h3 style="margin-top:20px; color:#6a1b9a;">विषयवार अंक</h3>
-        <table>
-          <tr><th>विषय</th><th>अंक</th></tr>
-          ${subjectsHTML || `<tr><td colspan="2">अंक डेटा उपलब्ध नहीं</td></tr>`}
-          <tr><th>कुल</th><td>${record["Total"] || "—"}</td></tr>
-          <tr><th>कुल में से</th><td>${record["Out of"] || "—"}</td></tr>
-          <tr><th>ग्रेड</th><td>${record["Grade"] || "—"}</td></tr>
-        </table>
-
-        <div class="buttons">
-          <button onclick="window.print()">🖨️ प्रिंट / PDF</button>
-          <button onclick="shareLink()">🔗 लिंक शेयर करें</button>
-          <button onclick="copyLink()">📋 लिंक कॉपी करें</button>
-        </div>
-      </div>
-    `;
-  }
-
-  function showNotFound(id) {
-    document.getElementById("result").innerHTML =
-      `<p class='notfound'>❌ रिकॉर्ड नहीं मिला (${id})</p>`;
-  }
-
-  function copyLink() {
-    navigator.clipboard.writeText(window.location.href);
-    alert("लिंक कॉपी हो गया!");
-  }
-
-  function shareLink() {
-    if (navigator.share) {
-      navigator.share({
-        title: "Result - Skill Centerr",
-        url: window.location.href
-      });
-    } else {
-      copyLink();
-    }
-  }
-
-  function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-  }
-
-  async function onScanSuccess(qrCodeMessage) {
-    const records = await fetchData();
-    const qrValue = qrCodeMessage.trim().toLowerCase();
-    const record = records.find(r => (r["Student id"] || "").toLowerCase() === qrValue);
-    if (record) showData(record);
-    else showNotFound(qrCodeMessage);
-  }
-
-  (async () => {
-    const id = getQueryParam("id");
-    if (id) {
-      const records = await fetchData();
-      const record = records.find(r => (r["Student id"] || "").toLowerCase() === id.toLowerCase());
-      if (record) showData(record);
-      else showNotFound(id);
-    } else {
-      const html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onScanSuccess
-      );
-    }
-  })();
-</script>
-
-<footer>
-  © 2025 Skill Centerr | Powered by osifbd.github.io
-</footer>
+    load();
+  </script>
 </body>
 </html>
