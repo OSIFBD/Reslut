@@ -1,46 +1,76 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎓 Skill Centerr | QR Scan</title>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skill Centerr · QR Scanner</title>
   <style>
-    body { text-align:center; font-family: Arial, sans-serif; background:#faf5ff; padding:20px; }
-    h2 { color:#4a148c; }
-    #reader { width:320px; margin:auto; }
+    body {
+      font-family: "Noto Sans Devanagari", Arial, sans-serif;
+      background: #faf5ff;
+      text-align: center;
+      padding: 20px;
+    }
+    h2 {
+      color: #4a148c;
+      margin-bottom: 10px;
+    }
+    #reader {
+      width: 320px;
+      margin: 20px auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    footer {
+      margin-top: 25px;
+      color: #777;
+      font-size: 13px;
+    }
+    .note { color: #555; }
   </style>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-  <h2>🎓 Skill Centerr · QR कोड स्कैन करें</h2>
-  <p>अपने परिणाम देखने के लिए QR कोड स्कैन करें</p>
+
+  <h2>🎓 Skill Centerr · परिणाम कार्ड</h2>
+  <p class="note">अपने QR को स्कैन करें या मैन्युअल लिंक पर जाएँ</p>
+
   <div id="reader"></div>
   <p id="status"></p>
 
   <script>
+    const html5QrCode = new Html5Qrcode("reader");
+
     function onScanSuccess(qrMessage) {
-      document.getElementById("status").innerText = "QR मिला ✅, Redirect हो रहा है...";
-      setTimeout(() => {
-       let qr = qrMessage.trim();
+      document.getElementById("status").innerText = "✅ QR स्कैन हुआ, लोड हो रहा है...";
+      let qr = qrMessage.trim();
 
-// अगर QR में पूरा लिंक है (https:// से शुरू होता है)
-if (qr.startsWith("http")) {
-  window.location.href = qr;
-}
-// अगर QR में सिर्फ ID है (जैसे OSD_025080013)
-else {
-  window.location.href = `result.html?id=${encodeURIComponent(qr)}`;
-}
-
-      }, 1000);
+      // अगर QR में पूरा लिंक है
+      if (qr.startsWith("http")) {
+        window.location.href = qr;
+      }
+      // अगर सिर्फ ID है
+      else {
+        window.location.href = `result.html?id=${encodeURIComponent(qr)}`;
+      }
     }
 
-    const html5QrCode = new Html5Qrcode("reader");
+    function onScanFailure(error) {
+      document.getElementById("status").innerText = "स्कैन करने की कोशिश जारी है...";
+    }
+
+    // कैमरा शुरू करो
     html5QrCode.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: 250 },
-      onScanSuccess
-    );
+      onScanSuccess,
+      onScanFailure
+    ).catch(err => {
+      document.getElementById("status").innerText = "❌ कैमरा शुरू नहीं हुआ: " + err;
+    });
   </script>
+
+  <footer>© 2025 Skill Centerr | osifbd.github.io</footer>
 </body>
 </html>
