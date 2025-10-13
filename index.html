@@ -21,7 +21,17 @@
     function onScanSuccess(qrMessage) {
       document.getElementById("status").innerText = "QR मिला ✅, Redirect हो रहा है...";
       setTimeout(() => {
-        window.location.href = `result.html?id=${encodeURIComponent(qrMessage.trim())}`;
+       let qr = qrMessage.trim();
+
+// अगर QR में पूरा लिंक है (https:// से शुरू होता है)
+if (qr.startsWith("http")) {
+  window.location.href = qr;
+}
+// अगर QR में सिर्फ ID है (जैसे OSD_025080013)
+else {
+  window.location.href = `result.html?id=${encodeURIComponent(qr)}`;
+}
+
       }, 1000);
     }
 
