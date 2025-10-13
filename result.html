@@ -78,38 +78,69 @@
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
+    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
     const q = new URLSearchParams(location.search);
     const wantedId = q.get('id');
 
-    async function load(){
-      try{
-        const res = await fetch('results.json');
-        const data = await res.json();
-        const stu = data.students.find(s => s.id === wantedId);
-        if(!stu){
-          document.getElementById('name').textContent = 'रिकॉर्ड नहीं मिला';
-          alert('अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=SC-2025-001');
+    async function load() {
+      try {
+        const res = await fetch(sheetURL);
+        const csv = await res.text();
+        const rows = csv.split("\n").map(r => r.split(","));
+        const headers = rows[0].map(h => h.trim());
+        const data = rows.slice(1).map(r => {
+          const obj = {};
+          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+          return obj;
+        });
+
+        const stu = data.find(s => s["Student id"] === wantedId);
+        if (!stu) {
+          alert("अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=SC-2025-001");
+          document.getElementById("name").textContent = "रिकॉर्ड नहीं मिला";
           return;
         }
-        set('name', stu.name); set('id', stu.id); set('roll', stu.roll); set('cls', stu.class); set('batch', stu.batch); set('date', stu.result_date);
-        set('total', stu.total); set('outof', stu.out_of); set('grade', stu.grade);
-        set('remarks', 'टिप्पणी: ' + (stu.remarks || '—'));
-        const tbody = document.getElementById('marks');
-        tbody.innerHTML = '';
-        Object.entries(stu.marks).forEach(([sub, m]) => {
-          const tr = document.createElement('tr');
-          const td1 = document.createElement('td'); td1.textContent = sub;
-          const td2 = document.createElement('td'); td2.textContent = m;
-          tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
+
+        set("name", stu["Name"]);
+        set("id", stu["Student id"]);
+        set("roll", stu["Roll"]);
+        set("cls", stu["Class"]);
+        set("batch", stu["Batch"]);
+        set("date", stu["Date of Issue"]);
+        set("total", stu["Total"]);
+        set("outof", stu["Out of"]);
+        set("grade", stu["Grade"]);
+        set("remarks", "टिप्पणी: " + (stu["Remarks"] || "—"));
+
+        const tbody = document.getElementById("marks");
+        tbody.innerHTML = "";
+        Object.keys(stu).forEach(key => {
+          if (!["Name","Father Name","Student id","Roll","Class","Batch","Date of Issue","Total","Out of","Grade","Remarks"].includes(key) && stu[key]) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${key}</td><td>${stu[key]}</td>`;
+            tbody.appendChild(tr);
+          }
         });
-      }catch(e){
-        alert('results.json लोड नहीं हुआ');
+      } catch (e) {
+        alert("Sheet डेटा लोड नहीं हुआ!");
       }
     }
-    function set(id, val){ document.getElementById(id).textContent = val }
 
-    function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>alert('लिंक कॉपी हो गया')); }
-    function shareLink(){ if(navigator.share){ navigator.share({title:document.title, url:location.href}); } else { copyLink(); } }
+    function set(id, val) {
+      document.getElementById(id).textContent = val;
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(location.href).then(() => alert("लिंक कॉपी हो गया"));
+    }
+
+    function shareLink() {
+      if (navigator.share) {
+        navigator.share({ title: document.title, url: location.href });
+      } else {
+        copyLink();
+      }
+    }
 
     load();
   </script>
