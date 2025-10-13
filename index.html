@@ -3,55 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orbital Skill Development · Result</title>
-
-  <!-- QR Scanner -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <title>Orbital Skill Development · Result Scanner</title>
 
   <style>
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #ede7f6, #f3e5f5);
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #f3e5f5, #ede7f6);
       text-align: center;
-      padding: 20px;
-      color: #333;
+      color: #4a148c;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
     }
     h2 {
-      color: #4A148C;
-      font-size: 28px;
-      margin-bottom: 6px;
-    }
-    h4 {
-      color: #555;
-      font-size: 16px;
+      font-size: 1.2rem;
+      color: #6a1b9a;
       margin-top: 0;
     }
     #reader {
       width: 320px;
-      margin: 25px auto;
+      margin: 30px auto;
       border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       overflow: hidden;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
-    #loading {
-      display: none;
-      margin-top: 20px;
-      color: #6A1B9A;
+    #message {
       font-weight: bold;
-    }
-    #error {
-      color: red;
       margin-top: 15px;
-      display: none;
     }
-    .spinner {
+    .loader {
+      display: none;
       border: 4px solid #e1bee7;
-      border-top: 4px solid #6A1B9A;
+      border-top: 4px solid #7b1fa2;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      width: 40px;
+      height: 40px;
+      margin: 20px auto;
       animation: spin 1s linear infinite;
-      margin: 10px auto;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -59,66 +49,81 @@
     }
     footer {
       margin-top: 30px;
-      color: #777;
       font-size: 13px;
+      color: #777;
     }
   </style>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-
-  <h2>Orbital Skill Development</h2>
-  <h4>Scan your QR Code to View Result</h4>
+  <h1>Orbital Skill Development</h1>
+  <h2>🎓 Scan QR to View Result</h2>
 
   <div id="reader"></div>
-
-  <div id="loading">
-    <div class="spinner"></div>
-    Redirecting, please wait...
-  </div>
-
-  <div id="error">⚠️ Unable to access camera or invalid QR detected!</div>
-
-  <script>
-    const reader = document.getElementById("reader");
-    const loading = document.getElementById("loading");
-    const errorMsg = document.getElementById("error");
-
-    function onScanSuccess(decodedText) {
-      if (decodedText) {
-        reader.style.display = "none";
-        loading.style.display = "block";
-        errorMsg.style.display = "none";
-        
-        // Add a small delay for animation
-        setTimeout(() => {
-          window.location.href = "result.html?id=" + encodeURIComponent(decodedText.trim());
-        }, 1500);
-      }
-    }
-
-    function onScanError(err) {
-      console.warn("Scan error:", err);
-      errorMsg.style.display = "block";
-      errorMsg.textContent = "⚠️ Scan failed or invalid QR code. Try again.";
-    }
-
-    const html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScanSuccess,
-      onScanError
-    ).catch(err => {
-      reader.style.display = "none";
-      errorMsg.style.display = "block";
-      errorMsg.textContent = "❌ Camera access denied or not available.";
-      console.error("QR Init Error:", err);
-    });
-  </script>
+  <div class="loader" id="loader"></div>
+  <div id="message">Align QR code inside the box to scan</div>
 
   <footer>
     © 2025 Orbital Skill Development | Powered by osifbd.github.io
   </footer>
 
+  <script>
+    // Google Sheet CSV (public link)
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?output=csv";
+
+    async function fetchData() {
+      const res = await fetch(sheetUrl);
+      const text = await res.text();
+      const rows = text.trim().split('\n').map(r => r.split(','));
+      const headers = rows.shift().map(h => h.trim());
+      const data = rows.map(r => {
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+        return obj;
+      });
+      return data;
+    }
+
+    function redirectToResult(id) {
+      const message = document.getElementById("message");
+      const loader = document.getElementById("loader");
+      message.innerText = "⏳ Loading result...";
+      loader.style.display = "block";
+
+      setTimeout(() => {
+        window.location.href = `result.html?id=${encodeURIComponent(id)}`;
+      }, 1500);
+    }
+
+    function onScanSuccess(decodedText) {
+      const cleanId = decodedText.split("id=")[1] || decodedText.trim();
+      if (!cleanId) {
+        document.getElementById("message").innerText = "❌ Invalid QR code";
+        return;
+      }
+      redirectToResult(cleanId);
+    }
+
+    function startScanner() {
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onScanSuccess,
+        (error) => {
+          document.getElementById("message").innerText = "Scanning...";
+        }
+      ).catch(err => {
+        document.getElementById("message").innerText = "⚠️ Camera access denied or unavailable.";
+        console.error(err);
+      });
+    }
+
+    // Start scanner after small delay for smooth load
+    window.onload = () => {
+      setTimeout(startScanner, 500);
+    };
+  </script>
 </body>
 </html>
