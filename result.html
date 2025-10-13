@@ -1,145 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Skill Centerr | परिणाम कार्ड</title>
-  <meta name="description" content="अपने QR लिंक से परिणाम देखें।" />
-  <meta name="theme-color" content="#4F0A5A" />
   <style>
-    :root{--primary:#4F0A5A;--accent:#F2CFEE;--ink:#231633;--muted:#6a5b79;--shadow:0 8px 24px rgba(35,22,51,.12);--radius:16px;--max:900px}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,white,color-mix(in oklab,var(--accent) 18%,white 82%))}
-    .wrap{max-width:var(--max);margin:0 auto;padding:18px}
-    header{display:flex;align-items:center;gap:12px;padding:12px 0}
-    .logo{width:40px;height:40px;border-radius:50%;background:radial-gradient(90% 90% at 20% 20%,var(--accent),transparent 60%),radial-gradient(90% 90% at 80% 80%,color-mix(in oklab,var(--primary) 70%,black 5%),transparent 60%),var(--primary);box-shadow:inset 0 0 0 2px #ffffffaa,0 6px 14px rgba(79,10,90,.35)}
-    h1{font-family:Poppins,Inter;font-size:clamp(22px,4vw,28px);margin:0;color:var(--primary)}
-    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid color-mix(in oklab,var(--primary) 12%,white 88%);padding:16px}
-    .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
-    @media (max-width:700px){.grid{grid-template-columns:1fr}}
-    .kv{display:grid;grid-template-columns:140px 1fr;gap:8px}
-    .kv div{padding:8px 10px;border-radius:10px}
-    .k{background:color-mix(in oklab,var(--accent) 35%,white 65%);color:var(--primary);font-weight:700}
-    .v{background:#fff;border:1px dashed color-mix(in oklab,var(--primary) 15%,white 85%)}
-    .marks table{width:100%;border-collapse:collapse}
-    .marks th,.marks td{border:1px solid color-mix(in oklab,var(--primary) 12%,white 88%);padding:8px;text-align:left}
-    .marks th{background:color-mix(in oklab,var(--accent) 25%,white 75%);color:var(--primary)}
-    .cta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid color-mix(in oklab,var(--primary) 20%,white 80%);cursor:pointer;font-weight:600}
-    .btn.primary{background:linear-gradient(135deg,var(--primary),color-mix(in oklab,var(--primary) 70%,black 10%));color:#fff;border-color:transparent}
-    .note{color:var(--muted);font-size:14px}
-    footer{margin-top:16px;text-align:center;color:var(--muted)}
+    body { font-family: 'Poppins', sans-serif; background: #f7f6fb; margin: 0; padding: 20px; color: #222; }
+    h1 { color: #4F0A5A; text-align: center; }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 24px;
+    }
+    .kv { display: grid; grid-template-columns: 150px 1fr; gap: 8px; margin-bottom: 8px; }
+    .k { font-weight: 600; color: #4F0A5A; }
+    .marks table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .marks th, .marks td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .marks th { background: #f3e6f7; color: #4F0A5A; }
+    .note { color: #777; font-size: 14px; margin-top: 12px; }
+    .btn { background: #4F0A5A; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; margin-top: 12px; }
+    .btn:hover { background: #6b0a75; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo"></div>
-      <div>
-        <h1>Skill Centerr · परिणाम कार्ड</h1>
-        <div class="note">QR स्कैन करने के बाद यह पेज खुलता है। नीचे आपकी पूर्ण जानकारी व परिणाम दिया है।</div>
-      </div>
-    </header>
-
-    <div class="card" id="card">
-      <div class="grid">
-        <section>
-          <div class="kv"><div class="k">विद्यार्थी</div><div class="v" id="name">—</div></div>
-          <div class="kv"><div class="k">आईडी</div><div class="v" id="id">—</div></div>
-          <div class="kv"><div class="k">रोल</div><div class="v" id="roll">—</div></div>
-          <div class="kv"><div class="k">कक्षा</div><div class="v" id="cls">—</div></div>
-          <div class="kv"><div class="k">बैच</div><div class="v" id="batch">—</div></div>
-          <div class="kv"><div class="k">परिणाम तिथि</div><div class="v" id="date">—</div></div>
-        </section>
-        <section class="marks">
-          <table>
-            <thead><tr><th>विषय</th><th>अंक</th></tr></thead>
-            <tbody id="marks"></tbody>
-            <tfoot>
-              <tr><th>कुल</th><th id="total">—</th></tr>
-              <tr><th>कुल में से</th><th id="outof">—</th></tr>
-              <tr><th>ग्रेड</th><th id="grade">—</th></tr>
-            </tfoot>
-          </table>
-        </section>
-      </div>
-      <p class="note" id="remarks" style="margin-top:8px"></p>
-
-      <div class="cta">
-        <button class="btn primary" onclick="window.print()">प्रिंट / PDF</button>
-        <button class="btn" onclick="shareLink()">लिंक शेयर करें</button>
-        <button class="btn" onclick="copyLink()">लिंक कॉपी करें</button>
-      </div>
+  <h1>Skill Centerr · परिणाम कार्ड</h1>
+  <div class="card" id="card">
+    <div id="info"></div>
+    <div class="marks">
+      <table>
+        <thead>
+          <tr><th>विषय</th><th>अंक</th></tr>
+        </thead>
+        <tbody id="marks"></tbody>
+        <tfoot>
+          <tr><th>कुल</th><td id="total">—</td></tr>
+          <tr><th>कुल में से</th><td id="outof">—</td></tr>
+          <tr><th>ग्रेड</th><td id="grade">—</td></tr>
+        </tfoot>
+      </table>
     </div>
-
-    <footer>© <span id="y"></span> Skill Centerr · Orbital Skill Development</footer>
+    <p class="note" id="date"></p>
+    <button class="btn" onclick="window.print()">प्रिंट / PDF</button>
   </div>
 
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+    const sheetURL = "https://docs.google.com/spreadsheets/d/19jct05NwuSasaUBLFbZoUiu8DC6qJTgcbOYO8wXduWw/gviz/tq?tqx=out:csv";
+    const id = new URLSearchParams(window.location.search).get('id');
 
-    const q = new URLSearchParams(location.search);
-    const wantedId = q.get('id');
-
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
-
-    async function load() {
+    async function loadResult() {
       try {
         const res = await fetch(sheetURL);
-        const text = await res.text();
-        const rows = text.split("\n").map(r => r.split(","));
+        const csv = await res.text();
+        const rows = csv.split("\n").map(r => r.split(","));
         const headers = rows[0].map(h => h.trim());
         const records = rows.slice(1).map(r => {
           const obj = {};
-          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+          headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
           return obj;
         });
 
-        // यहाँ 'Student id' वाले कॉलम से तुलना
-        const student = records.find(s => s["Student id"] === wantedId);
-
-        if (!student) {
-          document.getElementById("name").textContent = "रिकॉर्ड नहीं मिला";
-          alert("अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=SC-2025-001");
+        const record = records.find(r => r["Student id"] === id);
+        if (!record) {
+          document.getElementById("info").innerHTML = "<h3 style='color:red'>अमान्य या रिकॉर्ड नहीं मिला</h3>";
           return;
         }
 
-        set("name", student["Name"]);
-        set("id", student["Student id"]);
-        set("roll", student["Roll"]);
-        set("cls", student["Class"]);
-        set("batch", student["Batch"]);
-        set("date", student["Result Date"]);
-        set("total", student["Total"]);
-        set("outof", student["Out Of"]);
-        set("grade", student["Grade"]);
-        set("remarks", "टिप्पणी: " + (student["Remarks"] || "—"));
+        document.getElementById("info").innerHTML = `
+          <div class="kv"><div class="k">नाम</div><div>${record["Name"]}</div></div>
+          <div class="kv"><div class="k">पिता का नाम</div><div>${record["Father Name"]}</div></div>
+          <div class="kv"><div class="k">आईडी</div><div>${record["Student id"]}</div></div>
+          <div class="kv"><div class="k">रोल नंबर</div><div>${record["Roll No"]}</div></div>
+          <div class="kv"><div class="k">कक्षा</div><div>${record["Class"]}</div></div>
+          <div class="kv"><div class="k">बैच</div><div>${record["Batch"]}</div></div>
+          <div class="kv"><div class="k">कोर्स</div><div>${record["Course"]}</div></div>
+        `;
 
         const tbody = document.getElementById("marks");
-        tbody.innerHTML = "";
-
-        Object.keys(student).forEach(key => {
-          if (key.toLowerCase().includes("subject") && student[key]) {
-            const tr = document.createElement("tr");
-            const td1 = document.createElement("td");
-            td1.textContent = student[key];
-            const td2 = document.createElement("td");
-            td2.textContent = student[key.replace("Subject", "Marks")];
-            tr.append(td1, td2);
-            tbody.appendChild(tr);
-          }
-        });
+        tbody.innerHTML = `
+          <tr><td>${record["Subject 1"]}</td><td>${record["Marks 1"]}</td></tr>
+          <tr><td>${record["Subject 2"]}</td><td>${record["Marks 2"]}</td></tr>
+          <tr><td>${record["Subject 3"]}</td><td>${record["Marks 3"]}</td></tr>
+        `;
+        document.getElementById("total").textContent = record["Total"];
+        document.getElementById("outof").textContent = record["Out of"];
+        document.getElementById("grade").textContent = record["Grade"];
+        document.getElementById("date").textContent = "परिणाम तिथि: " + (record["Date of Issue"] || "—");
 
       } catch (err) {
-        alert("डेटा लोड करने में समस्या: " + err);
+        document.getElementById("info").innerHTML = "<h3 style='color:red'>डेटा लोड करने में समस्या</h3>";
+        console.error(err);
       }
     }
 
-    function set(id, val){ document.getElementById(id).textContent = val }
-    function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>alert("लिंक कॉपी हो गया")); }
-    function shareLink(){ if(navigator.share){ navigator.share({title:document.title, url:location.href}); } else { copyLink(); } }
-
-    load();
+    loadResult();
   </script>
 </body>
 </html>
