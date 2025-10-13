@@ -3,33 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Result Scanner</title>
+  <title>🎓 Result Scanner | Skill Centerr</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; padding: 20px; }
-    h2 { color: #333; }
-    #reader { width: 320px; margin: 20px auto; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f3e8ff, #fdf2f8);
+      text-align: center;
+      padding: 30px;
+    }
+    h2 {
+      color: #4a148c;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    #reader {
+      width: 320px;
+      margin: 20px auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
     .card {
       background: white;
       padding: 20px;
-      margin-top: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 30px auto;
+      border-radius: 16px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
       display: inline-block;
       text-align: left;
+      max-width: 400px;
+      line-height: 1.6;
     }
     p { margin: 6px 0; }
+    .notfound {
+      color: red;
+      font-weight: bold;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #666;
+    }
   </style>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-  <h2>🎓 Scan QR to View Result</h2>
+  <h2>🎓 Skill Centerr Result Scanner</h2>
+  <p>QR स्कैन करें और रिज़ल्ट देखें</p>
+
   <div id="reader"></div>
   <div id="result"></div>
 
 <script>
-  // Google Sheet ID से लिंक बनाया गया है
+  // 👇 आपका Google Sheet CSV लिंक
   const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
 
+  // 🔹 Google Sheet डेटा प्राप्त करना
   async function fetchData() {
     const res = await fetch(sheetURL);
     const data = await res.text();
@@ -43,6 +72,7 @@
     return records;
   }
 
+  // 🔹 रिज़ल्ट दिखाना
   function showData(record) {
     document.getElementById("result").innerHTML = `
       <div class="card">
@@ -55,19 +85,34 @@
       </div>`;
   }
 
+  // 🔹 QR स्कैन सफल होने पर
   async function onScanSuccess(qrCodeMessage) {
     const records = await fetchData();
-    const record = records.find(r => r["QR"] === qrCodeMessage.trim());
-    if (record) showData(record);
-    else document.getElementById("result").innerHTML = "<p style='color:red'>No result found!</p>";
+    const qrValue = qrCodeMessage.trim().toLowerCase();
+
+    // "Student id" कॉलम से तुलना करें
+    const record = records.find(r => (r["Student id"] || "").toLowerCase() === qrValue);
+
+    if (record) {
+      showData(record);
+    } else {
+      document.getElementById("result").innerHTML =
+        "<p class='notfound'>❌ Result not found for ID: " + qrCodeMessage + "</p>";
+    }
   }
 
+  // 🔹 QR स्कैनर स्टार्ट करें
   const html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start(
     { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
     onScanSuccess
   );
+
 </script>
+
+<footer>
+  © 2025 Skill Centerr | Powered by osifbd.github.io
+</footer>
 </body>
 </html>
