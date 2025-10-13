@@ -16,9 +16,8 @@
   .certificate {
     width: 800px;
     margin: 40px auto;
-    padding: 40px;
-    border: 10px solid #6a1b9a;
-    outline: 4px solid #d1c4e9;
+    padding: 50px;
+    border: 10px double #6a1b9a;
     text-align: center;
     position: relative;
     background: #fff;
@@ -36,22 +35,22 @@
   }
   p {
     font-size: 18px;
-    line-height: 1.6;
+    line-height: 1.8;
     margin: 20px auto;
     width: 90%;
   }
-  .data-line {
+  .data {
     font-weight: bold;
     color: #000;
     border-bottom: 1px dashed #999;
     display: inline-block;
     min-width: 180px;
   }
-  .sign-section {
+  .signs {
     display: flex;
     justify-content: space-between;
-    margin-top: 60px;
-    padding: 0 40px;
+    margin-top: 70px;
+    padding: 0 60px;
   }
   .sign {
     border-top: 1px solid #555;
@@ -59,7 +58,7 @@
     text-align: center;
     padding-top: 6px;
   }
-  .qr {
+  #qr {
     position: absolute;
     bottom: 40px;
     right: 40px;
@@ -93,20 +92,27 @@
   <h1>Orbital Skill Development</h1>
   <h2>Certificate of Completion</h2>
 
-  <p>This is to certify that <span class="data-line" id="name">__________</span>,  
-  S/o <span class="data-line" id="fname">__________</span>,  
-  having Student ID <span class="data-line" id="sid">__________</span>,  
-  has successfully completed the course <span class="data-line" id="course">__________</span>  
-  with grade <span class="data-line" id="grade">__________</span>.</p>
+  <p>
+    This is to certify that 
+    <span class="data" id="name">__________</span>,
+    S/o 
+    <span class="data" id="fname">__________</span>,
+    bearing Student ID 
+    <span class="data" id="sid">__________</span>,
+    has successfully completed the course 
+    <span class="data" id="course">__________</span>
+    with grade 
+    <span class="data" id="grade">__________</span>.
+  </p>
 
-  <p>Date of Issue: <span class="data-line" id="date">__________</span></p>
+  <p>Date of Issue: <span class="data" id="date">__________</span></p>
 
-  <div class="sign-section">
+  <div class="signs">
     <div class="sign">Authorized Signatory</div>
     <div class="sign">Director</div>
   </div>
 
-  <div class="qr" id="qr"></div>
+  <div id="qr"></div>
 
   <button onclick="window.print()">🖨️ Print / Save PDF</button>
 </div>
@@ -145,9 +151,9 @@ async function loadCertificate() {
     document.getElementById("grade").textContent = rec["Grade"] || "—";
     document.getElementById("date").textContent = rec["Date of Issue"] || "—";
 
-    // QR code render
+    // QR code
     const qrDiv = document.getElementById("qr");
-    const qrURL = rec["QR  Code"] || rec["QR Code"] || rec["QR"] || "";
+    const qrURL = rec["QR  Code"] || rec["QR Code"] || rec["QR"];
     if (qrURL) {
       qrDiv.innerHTML = `<img src="${qrURL}" width="100" height="100" alt="QR Code">`;
     }
