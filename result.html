@@ -77,25 +77,25 @@
 
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
-
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
     const q = new URLSearchParams(location.search);
     const wantedId = q.get('id');
 
-    async function load() {
-      try {
+    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
+
+    async function load(){
+      try{
         const res = await fetch(sheetURL);
         const csv = await res.text();
-        const rows = csv.split("\n").map(r => r.split(","));
+        const rows = csv.trim().split("\n").map(r => r.split(","));
         const headers = rows[0].map(h => h.trim());
         const data = rows.slice(1).map(r => {
           const obj = {};
-          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+          headers.forEach((h,i)=>obj[h]=r[i]?r[i].trim():"");
           return obj;
         });
 
-        const stu = data.find(s => s["Student id"] === wantedId);
-        if (!stu) {
+        const stu = data.find(s => (s["Student id"]||"").trim().toLowerCase() === (wantedId||"").trim().toLowerCase());
+        if(!stu){
           alert("अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=SC-2025-001");
           document.getElementById("name").textContent = "रिकॉर्ड नहीं मिला";
           return;
@@ -114,33 +114,22 @@
 
         const tbody = document.getElementById("marks");
         tbody.innerHTML = "";
-        Object.keys(stu).forEach(key => {
-          if (!["Name","Father Name","Student id","Roll","Class","Batch","Date of Issue","Total","Out of","Grade","Remarks"].includes(key) && stu[key]) {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${key}</td><td>${stu[key]}</td>`;
+        Object.keys(stu).forEach(key=>{
+          if(!["Name","Father Name","Student id","Roll","Class","Batch","Date of Issue","Total","Out of","Grade","Remarks"].includes(key) && stu[key]){
+            const tr=document.createElement("tr");
+            tr.innerHTML=`<td>${key}</td><td>${stu[key]}</td>`;
             tbody.appendChild(tr);
           }
         });
-      } catch (e) {
+      }catch(e){
         alert("Sheet डेटा लोड नहीं हुआ!");
       }
     }
 
-    function set(id, val) {
-      document.getElementById(id).textContent = val;
-    }
+    function set(id,val){ document.getElementById(id).textContent = val; }
 
-    function copyLink() {
-      navigator.clipboard.writeText(location.href).then(() => alert("लिंक कॉपी हो गया"));
-    }
-
-    function shareLink() {
-      if (navigator.share) {
-        navigator.share({ title: document.title, url: location.href });
-      } else {
-        copyLink();
-      }
-    }
+    function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>alert("लिंक कॉपी हो गया")); }
+    function shareLink(){ if(navigator.share){ navigator.share({title:document.title,url:location.href}); } else { copyLink(); } }
 
     load();
   </script>
