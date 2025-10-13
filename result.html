@@ -1,66 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Orbital Skill Development · Result</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f6ff;
-      color: #222;
-      text-align: center;
-      padding: 20px;
-    }
-    h2 {
-      color: #4A148C;
-      margin-bottom: 5px;
-    }
-    h3 { color: #6A1B9A; margin-top: 5px; }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      max-width: 800px;
-      margin: 20px auto;
-      text-align: left;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    th { background: #ede7f6; color: #4A148C; text-align: left; }
-    .btns { text-align: center; margin-top: 15px; }
-    button {
-      background: #6A1B9A;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    button:hover { background: #8E24AA; }
-    .notfound { color: red; font-weight: bold; }
+    body { font-family: Arial, sans-serif; background: #f9f6ff; margin: 0; padding: 20px; color: #333; }
+    .wrap { max-width: 850px; margin: 30px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #4F0A5A; margin-bottom: 10px; }
+    h3 { text-align: center; color: #666; margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: #ede7f6; color: #4F0A5A; }
+    .notfound { color: red; text-align: center; font-weight: bold; margin-top: 20px; }
+    .btn { display: block; margin: 20px auto; background: #4F0A5A; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
-
-  <h2>Orbital Skill Development</h2>
-  <h3>Result</h3>
-  <div id="result">⏳ Loading data...</div>
-
+  <div class="wrap" id="wrap">
+    <h1>Orbital Skill Development</h1>
+    <h3>Result</h3>
+    <div id="result">⏳ Loading data...</div>
+    <button class="btn" onclick="window.print()">🖨️ Print / PDF</button>
+  </div>
   <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?gid=0&single=true&output=csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?output=csv";
 
     async function fetchData() {
-      const res = await fetch(sheetURL);
+      const res = await fetch(sheetUrl);
       const text = await res.text();
       const rows = text.trim().split("\n").map(r => r.split(","));
       const headers = rows[0].map(h => h.trim());
@@ -72,65 +39,55 @@
     }
 
     function showData(rec) {
-      let subjects = "";
+      let subjHTML = "";
       for (let i = 1; i <= 8; i++) {
         const s = rec[`Subject ${i}`];
         const m = rec[`Marks ${i}`];
-        if (s) subjects += `<tr><td>${s}</td><td>${m || "—"}</td></tr>`;
+        if (s || m) {
+          subjHTML += `<tr><td>${s || "—"}</td><td>${m || "—"}</td></tr>`;
+        }
       }
-
       document.getElementById("result").innerHTML = `
-        <div class="card">
-          <table>
-            <tr><th>Name</th><td>${rec["Name"]}</td></tr>
-            <tr><th>Father Name</th><td>${rec["Father Name"]}</td></tr>
-            <tr><th>Student ID</th><td>${rec["Student id"]}</td></tr>
-            <tr><th>Roll No</th><td>${rec["Roll No"]}</td></tr>
-            <tr><th>Class</th><td>${rec["Class"]}</td></tr>
-            <tr><th>Batch</th><td>${rec["Batch"]}</td></tr>
-            <tr><th>Course</th><td>${rec["Course"]}</td></tr>
-            <tr><th>Date of Issue</th><td>${rec["Date of Issue"]}</td></tr>
-          </table>
-
-          <h3>Subject-wise Marks</h3>
-          <table>
-            <tr><th>Subject</th><th>Marks</th></tr>
-            ${subjects}
-            <tr><th>Total</th><td>${rec["Total"] || "—"}</td></tr>
-            <tr><th>Out of</th><td>${rec["Out of"] || "—"}</td></tr>
-            <tr><th>Grade</th><td>${rec["Grade"] || "—"}</td></tr>
-          </table>
-
-          <div class="btns">
-            <button onclick="window.print()">🖨️ Print / PDF</button>
-            <button onclick="copyLink()">📋 Copy Link</button>
-          </div>
-        </div>
+        <table>
+          <tr><th>Name</th><td>${rec["Name"] || "—"}</td></tr>
+          <tr><th>Father Name</th><td>${rec["Father Name"] || "—"}</td></tr>
+          <tr><th>Student ID</th><td>${rec["Student id"] || "—"}</td></tr>
+          <tr><th>Roll No</th><td>${rec["Roll No"] || "—"}</td></tr>
+          <tr><th>Class</th><td>${rec["Class"] || "—"}</td></tr>
+          <tr><th>Batch</th><td>${rec["Batch"] || "—"}</td></tr>
+          <tr><th>Course</th><td>${rec["Course"] || "—"}</td></tr>
+          <tr><th>Date of Issue</th><td>${rec["Date of Issue"] || "—"}</td></tr>
+        </table>
+        <h3 style="margin-top:25px;">Subject-wise Marks</h3>
+        <table>
+          <tr><th>Subject</th><th>Marks</th></tr>
+          ${subjHTML || `<tr><td colspan="2">No subject data available</td></tr>`}
+          <tr><th>Total</th><td>${rec["Total"] || "—"}</td></tr>
+          <tr><th>Out of</th><td>${rec["Out of"] || "—"}</td></tr>
+          <tr><th>Grade</th><td>${rec["Grade"] || "—"}</td></tr>
+        </table>
       `;
     }
 
-    function copyLink() {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied!");
-    }
-
     function showError(id) {
-      document.getElementById("result").innerHTML = `<p class='notfound'>❌ Record not found (${id})</p>`;
+      document.getElementById("result").innerHTML = `<p class="notfound">❌ Record not found (${id})</p>`;
     }
 
     (async () => {
-      const id = new URLSearchParams(window.location.search).get("id");
-      if (!id) return showError("Missing ID");
+      const idParam = new URLSearchParams(window.location.search).get("id");
+      if (!idParam) {
+        showError("Missing ID");
+        return;
+      }
       const data = await fetchData();
-      const rec = data.find(r => (r["Student id"] || "").toLowerCase() === id.toLowerCase());
+      const rec = data.find(r => (r["Student id"] || "").toLowerCase() === idParam.toLowerCase());
       if (rec) showData(rec);
-      else showError(id);
+      else showError(idParam);
     })();
   </script>
 
   <footer>
     © 2025 Orbital Skill Development | Powered by osifbd.github.io
   </footer>
-
 </body>
 </html>
