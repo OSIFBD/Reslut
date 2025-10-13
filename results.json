@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "institute": "Orbital Skill Development",
+    "brand": "Skill Centerr",
+    "session": "2025-26"
+  },
+  "students": [
+    {
+      "id": "SC-2025-001",
+      "name": "आऱव कुमार",
+      "roll": "10A-01",
+      "class": "कक्षा 10",
+      "batch": "इलेक्ट्रिशियन (स्टार्टर)",
+      "result_date": "2025-10-13",
+      "marks": {
+        "Electrical Basics": 24,
+        "Wiring Practice": 22,
+        "Safety & Tools": 20
+      },
+      "total": 66,
+      "out_of": 90,
+      "grade": "A",
+      "remarks": "व्यावहारिक कौशल अच्छे हैं; गति बढ़ाएँ।"
+    },
+    {
+      "id": "SC-2025-002",
+      "name": "सिमरन कौर",
+      "roll": "10A-02",
+      "class": "कक्षा 10",
+      "batch": "ब्यूटीशियन (स्टार्टर)",
+      "result_date": "2025-10-13",
+      "marks": {
+        "Skin Care": 23,
+        "Hair Basics": 21,
+        "Makeup Hygiene": 20
+      },
+      "total": 64,
+      "out_of": 90,
+      "grade": "A",
+      "remarks": "साफ़ काम; हेयर सेक्शनिंग पर और अभ्यास करें।"
+    }
+  ]
+}

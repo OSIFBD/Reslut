@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skill Centerr | QR परिणाम कार्ड (प्रिंट हेतु)</title>
+  <meta name="description" content="Students के लिए QR कार्ड प्रिंट करें—स्कैन करें और परिणाम देखें।" />
+  <meta name="theme-color" content="#4F0A5A" />
+  <style>
+    :root{ --primary:#4F0A5A; --accent:#F2CFEE; --ink:#231633; --muted:#6a5b79; --shadow:0 8px 24px rgba(35,22,51,.12) }
+    *{ box-sizing:border-box }
+    body{ margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:#fff }
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px }
+    h1{ color:var(--primary); margin:0 0 8px }
+    .note{ color:var(--muted) }
+    .cfg{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:12px 0 }
+    input{ padding:10px 12px; border-radius:10px; border:1px solid color-mix(in oklab, var(--primary) 15%, white 85%); min-width:380px }
+    button{ padding:10px 14px; border-radius:10px; border:1px solid color-mix(in oklab, var(--primary) 15%, white 85%); background:#fff; cursor:pointer; font-weight:600 }
+    button.primary{ background:linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, black 10%)); color:#fff; border-color:transparent }
+
+    .grid{ display:grid; gap:14px; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)) }
+
+    .card{ position:relative; border:1px solid color-mix(in oklab, var(--primary) 12%, white 88%); border-radius:16px; overflow:hidden; box-shadow:var(--shadow); background:#fff }
+    .bg{ position:absolute; inset:0; background: linear-gradient(180deg, #f8f3fa, #ffffff); opacity:0.28 }
+    .inner{ position:relative; padding:12px }
+    .top{ display:flex; justify-content:space-between; align-items:center; gap:8px }
+    .brand{ display:flex; align-items:center; gap:8px }
+    .logo{ width:32px; height:32px; border-radius:50%; background: radial-gradient(90% 90% at 20% 20%, var(--accent), transparent 60%), radial-gradient(90% 90% at 80% 80%, color-mix(in oklab, var(--primary) 70%, black 5%), transparent 60%), var(--primary); box-shadow: inset 0 0 0 2px #ffffffaa, 0 6px 14px rgba(79,10,90,.35) }
+    .title{ font-weight:700; color:var(--primary) }
+    .small{ font-size:12px; color:var(--muted) }
+    .row{ display:grid; grid-template-columns:1fr 120px; gap:10px; align-items:center; margin-top:8px }
+    .kv{ display:grid; grid-template-columns:100px 1fr; gap:6px }
+    .k{ background: color-mix(in oklab, var(--accent) 35%, white 65%); color:var(--primary); font-weight:700; padding:6px 8px; border-radius:10px }
+    .v{ background:#fff; border:1px dashed color-mix(in oklab, var(--primary) 15%, white 85%); padding:6px 8px; border-radius:10px }
+    .qr{ width:110px; height:110px; border-radius:12px; background:#fff; border:1px solid color-mix(in oklab, var(--primary) 12%, white 88%); display:flex; align-items:center; justify-content:center; overflow:hidden }
+    .qr img{ width:110px; height:110px; display:block }
+    .foot{ display:flex; justify-content:space-between; align-items:center; margin-top:8px }
+
+    @media print{
+      body{ background:#fff }
+      .wrap{ padding:0 }
+      .cfg{ display:none }
+      .grid{ grid-template-columns:repeat(3, 1fr); gap:10px }
+      .card{ page-break-inside:avoid }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>QR परिणाम कार्ड — प्रिंट करने योग्य</h1>
+    <p class="note">हर कार्ड पर QR होगा। स्कैन करते ही student का परिणाम खुलेगा (<code>result.html?id=...</code>).</p>
+
+    <div class="cfg">
+      <label>Site Base URL:
+        <input id="base" value="https://osifbd.github.io/Reslut" />
+      </label>
+      <button class="primary" onclick="gen()">कार्ड बनाएं</button>
+      <button onclick="window.print()">Print / PDF</button>
+    </div>
+
+    <div id="list" class="grid"></div>
+    <p class="small">QR images <a href="https://api.qrserver.com/" target="_blank" rel="noopener">api.qrserver.com</a> से लाए जाते हैं। चाहें तो इसे अपनी QR लाइब्रेरी से बदल सकते हैं।</p>
+  </div>
+
+  <script>
+    async function gen(){
+      const base = document.getElementById('base').value.replace(/\/$/, '');
+      const res = await fetch('results.json');
+      const data = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+
+      data.students.forEach(s => {
+        const url = `${base}/result.html?id=${encodeURIComponent(s.id)}`;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="bg" aria-hidden="true"></div>
+          <div class="inner">
+            <div class="top">
+              <div class="brand"><div class="logo" aria-hidden="true"></div><div>
+                <div class="title">Skill Centerr</div>
+                <div class="small">Orbital Skill Development</div>
+              </div></div>
+              <div class="small">ID: ${s.id}</div>
+            </div>
+            <div class="row">
+              <div>
+                <div class="kv"><div class="k">नाम</div><div class="v">${s.name}</div></div>
+                <div class="kv"><div class="k">रोल</div><div class="v">${s.roll}</div></div>
+                <div class="kv"><div class="k">कक्षा</div><div class="v">${s.class}</div></div>
+                <div class="kv"><div class="k">बैच</div><div class="v">${s.batch}</div></div>
+                <div class="kv"><div class="k">तिथि</div><div class="v">${s.result_date}</div></div>
+              </div>
+              <div class="qr">
+                <img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(url)}">
+              </div>
+            </div>
+            <div class="foot">
+              <div class="small">Scan करें → परिणाम देखें</div>
+              <a class="small" href="${url}" target="_blank">लिंक खोलें</a>
+            </div>
+          </div>`;
+        list.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
