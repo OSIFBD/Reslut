@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbital Skill Development | Certificate of Completion</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  body {
+    font-family: "Times New Roman", serif;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  .certificate {
+    width: 800px;
+    margin: 40px auto;
+    padding: 40px;
+    border: 10px solid #6a1b9a;
+    outline: 4px solid #d1c4e9;
+    text-align: center;
+    position: relative;
+    background: #fff;
+  }
+  h1 {
+    font-size: 36px;
+    color: #4A148C;
+    margin-bottom: 0;
+  }
+  h2 {
+    font-size: 22px;
+    color: #6a1b9a;
+    margin-top: 5px;
+    font-weight: 600;
+  }
+  p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin: 20px auto;
+    width: 90%;
+  }
+  .data-line {
+    font-weight: bold;
+    color: #000;
+    border-bottom: 1px dashed #999;
+    display: inline-block;
+    min-width: 180px;
+  }
+  .sign-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 60px;
+    padding: 0 40px;
+  }
+  .sign {
+    border-top: 1px solid #555;
+    width: 200px;
+    text-align: center;
+    padding-top: 6px;
+  }
+  .qr {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+  }
+  #loading {
+    text-align: center;
+    color: #6a1b9a;
+    font-weight: bold;
+    font-size: 20px;
+    margin-top: 100px;
+  }
+  button {
+    background: #6a1b9a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  button:hover {
+    background: #8e24aa;
+  }
+</style>
+</head>
+<body>
+<div id="loading">⏳ Loading Certificate...</div>
+
+<div class="certificate" id="cert" style="display:none;">
+  <h1>Orbital Skill Development</h1>
+  <h2>Certificate of Completion</h2>
+
+  <p>This is to certify that <span class="data-line" id="name">__________</span>,  
+  S/o <span class="data-line" id="fname">__________</span>,  
+  having Student ID <span class="data-line" id="sid">__________</span>,  
+  has successfully completed the course <span class="data-line" id="course">__________</span>  
+  with grade <span class="data-line" id="grade">__________</span>.</p>
+
+  <p>Date of Issue: <span class="data-line" id="date">__________</span></p>
+
+  <div class="sign-section">
+    <div class="sign">Authorized Signatory</div>
+    <div class="sign">Director</div>
+  </div>
+
+  <div class="qr" id="qr"></div>
+
+  <button onclick="window.print()">🖨️ Print / Save PDF</button>
+</div>
+
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?output=csv";
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+async function fetchData() {
+  const res = await fetch(sheetURL);
+  const text = await res.text();
+  const rows = text.split("\n").map(r => r.split(","));
+  const headers = rows[0].map(h => h.trim());
+  const data = rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+    return obj;
+  });
+  return data;
+}
+
+async function loadCertificate() {
+  try {
+    const data = await fetchData();
+    const rec = data.find(r => r["Student id"] === id);
+    if (!rec) {
+      document.getElementById("loading").textContent = "❌ Record not found!";
+      return;
+    }
+
+    document.getElementById("name").textContent = rec["Name"] || "—";
+    document.getElementById("fname").textContent = rec["Father Name"] || "—";
+    document.getElementById("sid").textContent = rec["Student id"] || "—";
+    document.getElementById("course").textContent = rec["Course"] || "—";
+    document.getElementById("grade").textContent = rec["Grade"] || "—";
+    document.getElementById("date").textContent = rec["Date of Issue"] || "—";
+
+    // QR code render
+    const qrDiv = document.getElementById("qr");
+    const qrURL = rec["QR  Code"] || rec["QR Code"] || rec["QR"] || "";
+    if (qrURL) {
+      qrDiv.innerHTML = `<img src="${qrURL}" width="100" height="100" alt="QR Code">`;
+    }
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("cert").style.display = "block";
+  } catch (err) {
+    document.getElementById("loading").textContent = "⚠️ Error loading data.";
+    console.error(err);
+  }
+}
+
+loadCertificate();
+</script>
+</body>
+</html>
