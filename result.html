@@ -49,8 +49,10 @@
           <div class="kv"><div class="k">रोल</div><div class="v" id="roll">—</div></div>
           <div class="kv"><div class="k">कक्षा</div><div class="v" id="cls">—</div></div>
           <div class="kv"><div class="k">बैच</div><div class="v" id="batch">—</div></div>
+          <div class="kv"><div class="k">कोर्स</div><div class="v" id="course">—</div></div>
           <div class="kv"><div class="k">परिणाम तिथि</div><div class="v" id="date">—</div></div>
         </section>
+
         <section class="marks">
           <table>
             <thead><tr><th>विषय</th><th>अंक</th></tr></thead>
@@ -63,8 +65,8 @@
           </table>
         </section>
       </div>
-      <p class="note" id="remarks" style="margin-top:8px"></p>
 
+      <p class="note" id="remarks" style="margin-top:8px"></p>
       <div class="cta">
         <button class="btn primary" onclick="window.print()">प्रिंट / PDF</button>
         <button class="btn" onclick="shareLink()">लिंक शेयर करें</button>
@@ -77,59 +79,60 @@
 
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
-    const q = new URLSearchParams(location.search);
-    const wantedId = q.get('id');
 
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
+    const sheetURL = "https://docs.google.com/spreadsheets/d/19jct05NwuSasaUBLFbZoUiu8DC6qJTgcbOYO8wXduWw/gviz/tq?tqx=out:csv";
+    const idParam = new URLSearchParams(location.search).get('id');
+
+    async function fetchSheet(){
+      const res = await fetch(sheetURL);
+      const text = await res.text();
+      const rows = text.split("\n").map(r => r.split(","));
+      const headers = rows[0].map(h => h.trim());
+      const data = rows.slice(1).map(r=>{
+        const obj = {};
+        headers.forEach((h,i)=> obj[h]=r[i]?r[i].trim():"");
+        return obj;
+      });
+      return data;
+    }
 
     async function load(){
       try{
-        const res = await fetch(sheetURL);
-        const csv = await res.text();
-        const rows = csv.trim().split("\n").map(r => r.split(","));
-        const headers = rows[0].map(h => h.trim());
-        const data = rows.slice(1).map(r => {
-          const obj = {};
-          headers.forEach((h,i)=>obj[h]=r[i]?r[i].trim():"");
-          return obj;
-        });
+        const data = await fetchSheet();
+        const student = data.find(s => s["Student id"].trim().toLowerCase() === (idParam||"").trim().toLowerCase());
+        if(!student){ alert("रिकॉर्ड नहीं मिला या गलत ID"); return; }
 
-        const stu = data.find(s => (s["Student id"]||"").trim().toLowerCase() === (wantedId||"").trim().toLowerCase());
-        if(!stu){
-          alert("अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=SC-2025-001");
-          document.getElementById("name").textContent = "रिकॉर्ड नहीं मिला";
-          return;
-        }
+        set("name", student["Name"]);
+        set("id", student["Student id"]);
+        set("roll", student["Roll No"]);
+        set("cls", student["Class"]);
+        set("batch", student["Batch"]);
+        set("course", student["Course"]);
+        set("date", student["Date of Issue"]);
+        set("total", student["Total"]);
+        set("outof", student["Out of"]);
+        set("grade", student["Grade"]);
+        set("remarks", "टिप्पणी: " + (student["Remarks"] || "—"));
 
-        set("name", stu["Name"]);
-        set("id", stu["Student id"]);
-        set("roll", stu["Roll"]);
-        set("cls", stu["Class"]);
-        set("batch", stu["Batch"]);
-        set("date", stu["Date of Issue"]);
-        set("total", stu["Total"]);
-        set("outof", stu["Out of"]);
-        set("grade", stu["Grade"]);
-        set("remarks", "टिप्पणी: " + (stu["Remarks"] || "—"));
-
-        const tbody = document.getElementById("marks");
-        tbody.innerHTML = "";
-        Object.keys(stu).forEach(key=>{
-          if(!["Name","Father Name","Student id","Roll","Class","Batch","Date of Issue","Total","Out of","Grade","Remarks"].includes(key) && stu[key]){
-            const tr=document.createElement("tr");
-            tr.innerHTML=`<td>${key}</td><td>${stu[key]}</td>`;
-            tbody.appendChild(tr);
+        const marksTable = document.getElementById("marks");
+        marksTable.innerHTML = "";
+        for(let i=1; i<=10; i++){
+          const sub = student[`Subject ${i}`];
+          const mark = student[`Marks ${i}`];
+          if(sub && mark){
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${sub}</td><td>${mark}</td>`;
+            marksTable.appendChild(tr);
           }
-        });
-      }catch(e){
-        alert("Sheet डेटा लोड नहीं हुआ!");
+        }
+      }catch(err){
+        alert("डेटा लोड करने में समस्या: " + err);
       }
     }
 
     function set(id,val){ document.getElementById(id).textContent = val; }
-
-    function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>alert("लिंक कॉपी हो गया")); }
-    function shareLink(){ if(navigator.share){ navigator.share({title:document.title,url:location.href}); } else { copyLink(); } }
+    function copyLink(){ navigator.clipboard.writeText(location.href).then(()=>alert('लिंक कॉपी हो गया')); }
+    function shareLink(){ if(navigator.share){ navigator.share({title:document.title, url:location.href}); } else { copyLink(); } }
 
     load();
   </script>
