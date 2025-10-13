@@ -24,8 +24,7 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const studentId = params.get('id');
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?output=csv";
-
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
     async function load() {
       try {
         const res = await fetch(sheetUrl);
