@@ -3,181 +3,134 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orbital Skill Development · Result Card</title>
+  <title>Orbital Skill Development · Result</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f9f6ff;
-      color: #333;
+      color: #222;
       text-align: center;
       padding: 20px;
     }
-    h1 {
-      color: #4b0082;
+    h2 {
+      color: #4A148C;
       margin-bottom: 5px;
     }
-    h2 {
-      color: #6a1b9a;
-      margin-top: 0;
-    }
+    h3 { color: #6A1B9A; margin-top: 5px; }
     .card {
       background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
       max-width: 800px;
       margin: 20px auto;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: left;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 10px;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
+      padding: 8px;
     }
-    th {
-      background: #ede7f6;
-      color: #4a148c;
-    }
+    th { background: #ede7f6; color: #4A148C; text-align: left; }
+    .btns { text-align: center; margin-top: 15px; }
     button {
-      margin: 10px;
-      padding: 10px 18px;
+      background: #6A1B9A;
+      color: #fff;
       border: none;
+      padding: 10px 16px;
       border-radius: 8px;
+      margin: 5px;
       cursor: pointer;
-      color: white;
-      background: #7b1fa2;
     }
-    button:hover {
-      background: #9c27b0;
-    }
-    .notfound {
-      color: red;
-      font-weight: bold;
-    }
-    footer {
-      margin-top: 30px;
-      font-size: 13px;
-      color: #777;
-    }
+    button:hover { background: #8E24AA; }
+    .notfound { color: red; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <h1>Orbital Skill Development</h1>
-  <h2>Result Card</h2>
-
-  <div class="card" id="result">Loading data...</div>
-
-  <footer>© 2025 Orbital Skill Development | Powered by osifbd.github.io</footer>
+  <h2>Orbital Skill Development</h2>
+  <h3>Result</h3>
+  <div id="result">⏳ Loading data...</div>
 
   <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?gid=0&single=true&output=csv";
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzyDmOHaVmbbaBGsBbzlpiY56MkuzfJmwbXOUbGFf8jU0s7v1Pl7tMU58UcoL9Wt_hZ/exec";
-
-    function getParam(name) {
-      return new URLSearchParams(window.location.search).get(name);
-    }
 
     async function fetchData() {
       const res = await fetch(sheetURL);
       const text = await res.text();
-      const rows = text.trim().split('\n').map(r => r.split(','));
+      const rows = text.trim().split("\n").map(r => r.split(","));
       const headers = rows[0].map(h => h.trim());
       return rows.slice(1).map(r => {
         const obj = {};
-        headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+        headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
         return obj;
       });
     }
 
-    function showRecord(record) {
-      let subjectsHTML = "";
-      for (let i = 1; i <= 10; i++) {
-        const subj = record[`Subject ${i}`];
-        const marks = record[`Marks ${i}`];
-        if (subj && marks) {
-          subjectsHTML += `<tr><td contenteditable="true">${subj}</td><td contenteditable="true">${marks}</td></tr>`;
-        }
+    function showData(rec) {
+      let subjects = "";
+      for (let i = 1; i <= 8; i++) {
+        const s = rec[`Subject ${i}`];
+        const m = rec[`Marks ${i}`];
+        if (s) subjects += `<tr><td>${s}</td><td>${m || "—"}</td></tr>`;
       }
 
       document.getElementById("result").innerHTML = `
-        <table>
-          <tr><th>Name</th><td>${record["Name"]}</td></tr>
-          <tr><th>Father's Name</th><td>${record["Father Name"]}</td></tr>
-          <tr><th>Student ID</th><td>${record["Student id"]}</td></tr>
-          <tr><th>Roll No</th><td>${record["Roll No"]}</td></tr>
-          <tr><th>Class</th><td>${record["Class"]}</td></tr>
-          <tr><th>Batch</th><td>${record["Batch"]}</td></tr>
-          <tr><th>Course</th><td>${record["Course"]}</td></tr>
-          <tr><th>Date of Issue</th><td>${record["Date of Issue"]}</td></tr>
-        </table>
+        <div class="card">
+          <table>
+            <tr><th>Name</th><td>${rec["Name"]}</td></tr>
+            <tr><th>Father Name</th><td>${rec["Father Name"]}</td></tr>
+            <tr><th>Student ID</th><td>${rec["Student id"]}</td></tr>
+            <tr><th>Roll No</th><td>${rec["Roll No"]}</td></tr>
+            <tr><th>Class</th><td>${rec["Class"]}</td></tr>
+            <tr><th>Batch</th><td>${rec["Batch"]}</td></tr>
+            <tr><th>Course</th><td>${rec["Course"]}</td></tr>
+            <tr><th>Date of Issue</th><td>${rec["Date of Issue"]}</td></tr>
+          </table>
 
-        <h3 style="margin-top:20px; color:#6a1b9a;">Subjects & Marks</h3>
-        <table id="subjectsTable">
-          <tr><th>Subject</th><th>Marks</th></tr>
-          ${subjectsHTML || `<tr><td colspan="2">No subject data available</td></tr>`}
-        </table>
+          <h3>Subject-wise Marks</h3>
+          <table>
+            <tr><th>Subject</th><th>Marks</th></tr>
+            ${subjects}
+            <tr><th>Total</th><td>${rec["Total"] || "—"}</td></tr>
+            <tr><th>Out of</th><td>${rec["Out of"] || "—"}</td></tr>
+            <tr><th>Grade</th><td>${rec["Grade"] || "—"}</td></tr>
+          </table>
 
-        <div>
-          <button id="editBtn">Edit Subjects</button>
-          <button id="saveBtn" style="display:none;">Save Changes</button>
+          <div class="btns">
+            <button onclick="window.print()">🖨️ Print / PDF</button>
+            <button onclick="copyLink()">📋 Copy Link</button>
+          </div>
         </div>
       `;
-
-      const editBtn = document.getElementById("editBtn");
-      const saveBtn = document.getElementById("saveBtn");
-      const table = document.getElementById("subjectsTable");
-
-      editBtn.onclick = () => {
-        [...table.querySelectorAll("td[contenteditable]")].forEach(td => td.contentEditable = true);
-        editBtn.style.display = "none";
-        saveBtn.style.display = "inline-block";
-      };
-
-      saveBtn.onclick = async () => {
-        const rows = [...table.querySelectorAll("tr")].slice(1);
-        const updatedSubjects = {};
-        rows.forEach((r, i) => {
-          const tds = r.querySelectorAll("td");
-          updatedSubjects[`Subject ${i + 1}`] = tds[0].innerText.trim();
-          updatedSubjects[`Marks ${i + 1}`] = tds[1].innerText.trim();
-        });
-
-        const payload = {
-          id: record["Student id"],
-          ...updatedSubjects
-        };
-
-        await fetch(scriptUrl, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-
-        alert("✅ Changes saved successfully!");
-        saveBtn.style.display = "none";
-        editBtn.style.display = "inline-block";
-      };
     }
 
-    async function init() {
-      const id = getParam("id");
-      if (!id) {
-        document.getElementById("result").innerHTML = `<p class='notfound'>Invalid or missing Student ID.</p>`;
-        return;
-      }
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied!");
+    }
 
+    function showError(id) {
+      document.getElementById("result").innerHTML = `<p class='notfound'>❌ Record not found (${id})</p>`;
+    }
+
+    (async () => {
+      const id = new URLSearchParams(window.location.search).get("id");
+      if (!id) return showError("Missing ID");
       const data = await fetchData();
-      const record = data.find(r => r["Student id"].toLowerCase() === id.toLowerCase());
-      if (record) showRecord(record);
-      else document.getElementById("result").innerHTML = `<p class='notfound'>Record not found for ID: ${id}</p>`;
-    }
-
-    init();
+      const rec = data.find(r => (r["Student id"] || "").toLowerCase() === id.toLowerCase());
+      if (rec) showData(rec);
+      else showError(id);
+    })();
   </script>
+
+  <footer>
+    © 2025 Orbital Skill Development | Powered by osifbd.github.io
+  </footer>
 
 </body>
 </html>
