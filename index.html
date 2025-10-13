@@ -1,76 +1,69 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Skill Centerr · QR Scanner</title>
+  <title>Orbital Skill Development · Result</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body {
-      font-family: "Noto Sans Devanagari", Arial, sans-serif;
-      background: #faf5ff;
+      font-family: Arial, sans-serif;
+      background: #f2f2f8;
       text-align: center;
       padding: 20px;
     }
     h2 {
-      color: #4a148c;
-      margin-bottom: 10px;
+      color: #4A148C;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    h4 {
+      color: #666;
+      margin-top: 0;
     }
     #reader {
       width: 320px;
-      margin: 20px auto;
-      border-radius: 12px;
+      margin: 30px auto;
+      border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     footer {
-      margin-top: 25px;
-      color: #777;
+      margin-top: 30px;
       font-size: 13px;
+      color: #777;
     }
-    .note { color: #555; }
   </style>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
 
-  <h2>🎓 Skill Centerr · परिणाम कार्ड</h2>
-  <p class="note">अपने QR को स्कैन करें या मैन्युअल लिंक पर जाएँ</p>
+  <h2>Orbital Skill Development</h2>
+  <h4>Scan QR to View Result</h4>
 
   <div id="reader"></div>
-  <p id="status"></p>
 
   <script>
+    function onScanSuccess(decodedText) {
+      if (decodedText) {
+        window.location.href = "result.html?id=" + encodeURIComponent(decodedText.trim());
+      }
+    }
+
+    function onScanError(errorMessage) {
+      console.warn(errorMessage);
+    }
+
     const html5QrCode = new Html5Qrcode("reader");
-
-    function onScanSuccess(qrMessage) {
-      document.getElementById("status").innerText = "✅ QR स्कैन हुआ, लोड हो रहा है...";
-      let qr = qrMessage.trim();
-
-      // अगर QR में पूरा लिंक है
-      if (qr.startsWith("http")) {
-        window.location.href = qr;
-      }
-      // अगर सिर्फ ID है
-      else {
-        window.location.href = `result.html?id=${encodeURIComponent(qr)}`;
-      }
-    }
-
-    function onScanFailure(error) {
-      document.getElementById("status").innerText = "स्कैन करने की कोशिश जारी है...";
-    }
-
-    // कैमरा शुरू करो
     html5QrCode.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: 250 },
       onScanSuccess,
-      onScanFailure
-    ).catch(err => {
-      document.getElementById("status").innerText = "❌ कैमरा शुरू नहीं हुआ: " + err;
-    });
+      onScanError
+    );
   </script>
 
-  <footer>© 2025 Skill Centerr | osifbd.github.io</footer>
+  <footer>
+    © 2025 Orbital Skill Development | Powered by osifbd.github.io
+  </footer>
 </body>
 </html>
