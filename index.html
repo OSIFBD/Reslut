@@ -1,65 +1,36 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Skill Centerr · परिणाम कार्ड</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎓 Skill Centerr | QR Scan</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; color: #333; }
-    .wrap { max-width: 800px; margin: 30px auto; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #4F0A5A; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-    th { background: #f3e6f9; color: #4F0A5A; }
-    .notfound { color: red; text-align: center; margin: 20px 0; font-weight: bold; }
-    .btn { margin-top: 20px; background: #4F0A5A; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+    body { text-align:center; font-family: Arial, sans-serif; background:#faf5ff; padding:20px; }
+    h2 { color:#4a148c; }
+    #reader { width:320px; margin:auto; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Skill Centerr · परिणाम कार्ड</h1>
-    <div id="result"></div>
-    <button class="btn" onclick="window.print()">प्रिंट / PDF</button>
-  </div>
+  <h2>🎓 Skill Centerr · QR कोड स्कैन करें</h2>
+  <p>अपने परिणाम देखने के लिए QR कोड स्कैन करें</p>
+  <div id="reader"></div>
+  <p id="status"></p>
+
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const studentId = params.get('id');
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
-    async function load() {
-      try {
-        const res = await fetch(sheetUrl);
-        const text = await res.text();
-        const rows = text.trim().split('\n').map(r => r.split(','));
-        const headers = rows.shift().map(h => h.trim());
-        const data = rows.map(r => {
-          const obj = {};
-          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
-          return obj;
-        });
-
-        const rec = data.find(r => r["Student id"] === studentId);
-        const container = document.getElementById("result");
-        if (!rec) {
-          container.innerHTML = `<p class="notfound">अमान्य या रिकॉर्ड नहीं मिला</p>`;
-          return;
-        }
-
-        container.innerHTML = `
-          <table>
-            <tr><th>नाम</th><td>${rec["Name"]}</td></tr>
-            <tr><th>पिता का नाम</th><td>${rec["Father Name"]}</td></tr>
-            <tr><th>स्टूडेंट ID</th><td>${rec["Student id"]}</td></tr>
-            <tr><th>कोर्स</th><td>${rec["Course"]}</td></tr>
-            <tr><th>ग्रेड</th><td>${rec["Grade"]}</td></tr>
-            <tr><th>परिणाम तिथि</th><td>${rec["Date of Issue"]}</td></tr>
-          </table>
-        `;
-      } catch (err) {
-        document.getElementById("result").innerHTML = `<p class="notfound">डेटा लोड करने में त्रुटि</p>`;
-        console.error(err);
-      }
+    function onScanSuccess(qrMessage) {
+      document.getElementById("status").innerText = "QR मिला ✅, Redirect हो रहा है...";
+      setTimeout(() => {
+        window.location.href = `result.html?id=${encodeURIComponent(qrMessage.trim())}`;
+      }, 1000);
     }
-    load();
+
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    );
   </script>
 </body>
 </html>
