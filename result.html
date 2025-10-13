@@ -1,68 +1,84 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Skill Centerr | परिणाम कार्ड</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skill Centerr · परिणाम कार्ड</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f9f6fb; margin:0; padding:0; color:#300049; }
-    .wrap { max-width:900px; margin:40px auto; background:white; border-radius:18px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
-    h1 { text-align:center; color:#4F0A5A; margin-bottom:10px; }
-    table { width:100%; border-collapse:collapse; margin-top:16px; }
-    th, td { border:1px solid #ddd; padding:8px; }
-    th { background:#f3e6f9; color:#4F0A5A; }
-    .center { text-align:center; color:red; font-weight:bold; }
-    .btn { background:#4F0A5A; color:white; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; margin-top:12px; }
+    body { font-family: 'Noto Sans Devanagari', Arial, sans-serif; background:#faf5ff; padding:20px; text-align:center; }
+    h2 { color:#4a148c; }
+    .card { background:white; padding:20px; margin:30px auto; border-radius:16px; max-width:700px; box-shadow:0 5px 15px rgba(0,0,0,0.1); text-align:left; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #e1bee7; padding:8px; }
+    th { background:#f3e5f5; color:#4a148c; text-align:left; }
+    .notfound { color:red; font-weight:bold; text-align:center; }
+    button { background:#7b1fa2; color:white; border:none; padding:10px 16px; border-radius:8px; margin:5px; cursor:pointer; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Skill Centerr · परिणाम कार्ड</h1>
-    <div id="result"></div>
-    <button class="btn" onclick="window.print()">प्रिंट / PDF</button>
-  </div>
+  <h2>🎓 Skill Centerr · परिणाम कार्ड</h2>
+  <div id="result">⏳ डेटा लोड हो रहा है...</div>
 
   <script>
+    const sheetURL = "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
     const params = new URLSearchParams(window.location.search);
-    const studentId = params.get('id');
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv';
+    const id = params.get('id');
 
-    async function loadResult() {
-      const res = await fetch(sheetUrl);
-      const csvText = await res.text();
-      const rows = csvText.trim().split('\n').map(r => r.split(','));
-      const headers = rows.shift().map(h => h.trim());
-      const data = rows.map(r => Object.fromEntries(r.map((val, i) => [headers[i], val.trim()])));
-      const student = data.find(s => s['Student id'] === studentId);
+    async function fetchData() {
+      const res = await fetch(sheetURL);
+      const text = await res.text();
+      const rows = text.trim().split('\n').map(r => r.split(','));
+      const headers = rows[0].map(h => h.trim());
+      const data = rows.slice(1).map(r => {
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+        return obj;
+      });
+      return data;
+    }
 
-      const div = document.getElementById('result');
-      if (!student) {
-        div.innerHTML = `<p class="center">अमान्य या रिकॉर्ड नहीं मिला</p>`;
+    function showRecord(rec) {
+      let subjects = "";
+      for (let i=1;i<=10;i++){
+        if (rec[`Subject ${i}`]) {
+          subjects += `<tr><td>${rec[`Subject ${i}`]}</td><td>${rec[`Marks ${i}`]}</td></tr>`;
+        }
+      }
+      document.getElementById("result").innerHTML = `
+        <div class="card">
+          <table>
+            <tr><th>नाम</th><td>${rec["Name"]}</td></tr>
+            <tr><th>पिता का नाम</th><td>${rec["Father Name"]}</td></tr>
+            <tr><th>आईडी</th><td>${rec["Student id"]}</td></tr>
+            <tr><th>रोल</th><td>${rec["Roll No"]}</td></tr>
+            <tr><th>कक्षा</th><td>${rec["Class"]}</td></tr>
+            <tr><th>बैच</th><td>${rec["Batch"]}</td></tr>
+            <tr><th>कोर्स</th><td>${rec["Course"]}</td></tr>
+            <tr><th>परिणाम तिथि</th><td>${rec["Date of Issue"]}</td></tr>
+          </table>
+          <h3 style="color:#6a1b9a;">विषयवार अंक</h3>
+          <table>
+            <tr><th>विषय</th><th>अंक</th></tr>
+            ${subjects || `<tr><td colspan="2">अंक डेटा उपलब्ध नहीं</td></tr>`}
+            <tr><th>कुल</th><td>${rec["Total"]}</td></tr>
+            <tr><th>कुल में से</th><td>${rec["Out of"]}</td></tr>
+            <tr><th>ग्रेड</th><td>${rec["Grade"]}</td></tr>
+          </table>
+          <button onclick="window.print()">🖨️ प्रिंट / PDF</button>
+        </div>`;
+    }
+
+    (async () => {
+      if (!id) {
+        document.getElementById("result").innerHTML = `<p class="notfound">अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=OSD_025080013</p>`;
         return;
       }
-
-      div.innerHTML = `
-        <table>
-          <tr><th>नाम</th><td>${student['Name']}</td></tr>
-          <tr><th>पिता का नाम</th><td>${student['Father Name']}</td></tr>
-          <tr><th>आईडी</th><td>${student['Student id']}</td></tr>
-          <tr><th>कक्षा</th><td>${student['Class']}</td></tr>
-          <tr><th>बैच</th><td>${student['Batch']}</td></tr>
-          <tr><th>कोर्स</th><td>${student['Course']}</td></tr>
-          <tr><th>परिणाम तिथि</th><td>${student['Date of Issue']}</td></tr>
-        </table>
-        <h3>विषय और अंक</h3>
-        <table>
-          <tr><th>${student['Subject 1']}</th><td>${student['Marks 1']}</td></tr>
-          <tr><th>${student['Subject 2']}</th><td>${student['Marks 2']}</td></tr>
-          <tr><th>${student['Subject 3']}</th><td>${student['Marks 3']}</td></tr>
-          <tr><th>कुल</th><td>${student['Total']}</td></tr>
-          <tr><th>कुल में से</th><td>${student['Out of']}</td></tr>
-          <tr><th>ग्रेड</th><td>${student['Grade']}</td></tr>
-        </table>
-      `;
-    }
-    loadResult();
+      const data = await fetchData();
+      const rec = data.find(r => r["Student id"].trim().toLowerCase() === id.trim().toLowerCase());
+      if (rec) showRecord(rec);
+      else document.getElementById("result").innerHTML = `<p class="notfound">अमान्य या रिकॉर्ड नहीं मिला</p>`;
+    })();
   </script>
 </body>
 </html>
+
