@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎓 Result Scanner | Skill Centerr</title>
+  <title>🎓 Result | Skill Centerr</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
@@ -48,9 +48,7 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-  <h2>🎓 Skill Centerr Result Scanner</h2>
-  <p>QR स्कैन करें और रिज़ल्ट देखें</p>
-
+  <h2>🎓 Skill Centerr Result</h2>
   <div id="reader"></div>
   <div id="result"></div>
 
@@ -74,6 +72,7 @@
 
   // 🔹 रिज़ल्ट दिखाना
   function showData(record) {
+    document.getElementById("reader").style.display = "none"; // स्कैनर छिपा दें
     document.getElementById("result").innerHTML = `
       <div class="card">
         <h3>${record["Name"]}</h3>
@@ -85,30 +84,46 @@
       </div>`;
   }
 
+  // 🔹 रिज़ल्ट नहीं मिला
+  function showNotFound(id) {
+    document.getElementById("result").innerHTML =
+      `<p class='notfound'>❌ Result not found for ID: ${id}</p>`;
+  }
+
+  // 🔹 URL Parameter से ID निकालना
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
   // 🔹 QR स्कैन सफल होने पर
   async function onScanSuccess(qrCodeMessage) {
     const records = await fetchData();
     const qrValue = qrCodeMessage.trim().toLowerCase();
-
-    // "Student id" कॉलम से तुलना करें
     const record = records.find(r => (r["Student id"] || "").toLowerCase() === qrValue);
-
-    if (record) {
-      showData(record);
-    } else {
-      document.getElementById("result").innerHTML =
-        "<p class='notfound'>❌ Result not found for ID: " + qrCodeMessage + "</p>";
-    }
+    if (record) showData(record);
+    else showNotFound(qrCodeMessage);
   }
 
-  // 🔹 QR स्कैनर स्टार्ट करें
-  const html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    onScanSuccess
-  );
-
+  // 🔹 मुख्य लॉजिक: URL से ID या स्कैनर
+  (async () => {
+    const id = getQueryParam("id");
+    if (id) {
+      // URL में id मिली → सीधा रिज़ल्ट दिखाओ
+      const records = await fetchData();
+      const record = records.find(r => (r["Student id"] || "").toLowerCase() === id.toLowerCase());
+      if (record) showData(record);
+      else showNotFound(id);
+    } else {
+      // URL में id नहीं मिली → स्कैनर दिखाओ
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+      );
+    }
+  })();
 </script>
 
 <footer>
