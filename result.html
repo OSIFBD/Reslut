@@ -1,84 +1,153 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Skill Centerr · परिणाम कार्ड</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orbital Skill Development · Result Card</title>
   <style>
-    body { font-family: 'Noto Sans Devanagari', Arial, sans-serif; background:#faf5ff; padding:20px; text-align:center; }
-    h2 { color:#4a148c; }
-    .card { background:white; padding:20px; margin:30px auto; border-radius:16px; max-width:700px; box-shadow:0 5px 15px rgba(0,0,0,0.1); text-align:left; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border:1px solid #e1bee7; padding:8px; }
-    th { background:#f3e5f5; color:#4a148c; text-align:left; }
-    .notfound { color:red; font-weight:bold; text-align:center; }
-    button { background:#7b1fa2; color:white; border:none; padding:10px 16px; border-radius:8px; margin:5px; cursor:pointer; }
+    body {
+      font-family: "Poppins", Arial, sans-serif;
+      background: #f8f7fb;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .wrap {
+      max-width: 850px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #4F0A5A;
+    }
+    header p {
+      margin: 5px 0 0;
+      font-size: 16px;
+      color: #777;
+      font-weight: 500;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #f3e6f9;
+      color: #4F0A5A;
+    }
+    .notfound {
+      color: red;
+      text-align: center;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .btn {
+      margin-top: 20px;
+      background: #4F0A5A;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #777;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-  <h2>🎓 Skill Centerr · परिणाम कार्ड</h2>
-  <div id="result">⏳ डेटा लोड हो रहा है...</div>
+  <div class="wrap">
+    <header>
+      <h1>Orbital Skill Development</h1>
+      <p>Result Card</p>
+    </header>
+
+    <div id="result"><p style="text-align:center;color:#777;">Loading data...</p></div>
+
+    <button class="btn" onclick="window.print()">🖨️ Print / PDF</button>
+  </div>
+
+  <footer>© 2025 Orbital Skill Development | Powered by osifbd.github.io</footer>
 
   <script>
-   const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?gid=0&single=true&output=csv";
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
+    const studentId = params.get('id');
+    // ✅ Your working Google Sheet CSV link
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?gid=0&single=true&output=csv";
 
-    async function fetchData() {
-      const res = await fetch(sheetURL);
-      const text = await res.text();
-      const rows = text.trim().split('\n').map(r => r.split(','));
-      const headers = rows[0].map(h => h.trim());
-      const data = rows.slice(1).map(r => {
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
-        return obj;
-      });
-      return data;
-    }
+    async function load() {
+      try {
+        const res = await fetch(sheetUrl);
+        const text = await res.text();
+        const rows = text.trim().split('\n').map(r => r.split(','));
+        const headers = rows.shift().map(h => h.trim());
+        const data = rows.map(r => {
+          const obj = {};
+          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
+          return obj;
+        });
 
-    function showRecord(rec) {
-      let subjects = "";
-      for (let i=1;i<=10;i++){
-        if (rec[`Subject ${i}`]) {
-          subjects += `<tr><td>${rec[`Subject ${i}`]}</td><td>${rec[`Marks ${i}`]}</td></tr>`;
+        const rec = data.find(r => (r["Student id"] || "").toLowerCase() === (studentId || "").toLowerCase());
+        const container = document.getElementById("result");
+
+        if (!rec) {
+          container.innerHTML = `<p class="notfound">❌ Invalid or record not found (${studentId})</p>`;
+          return;
         }
+
+        // Subjects & Marks — auto-detect how many exist
+        let subjectsHTML = "";
+        for (let i = 1; i <= 10; i++) {
+          const subj = rec[`Subject ${i}`];
+          const mark = rec[`Marks ${i}`];
+          if (subj && mark) subjectsHTML += `<tr><td>${subj}</td><td>${mark}</td></tr>`;
+        }
+
+        container.innerHTML = `
+          <table>
+            <tr><th>Student Name</th><td>${rec["Name"]}</td></tr>
+            <tr><th>Father's Name</th><td>${rec["Father Name"]}</td></tr>
+            <tr><th>Student ID</th><td>${rec["Student id"]}</td></tr>
+            <tr><th>Roll No</th><td>${rec["Roll No"]}</td></tr>
+            <tr><th>Class</th><td>${rec["Class"]}</td></tr>
+            <tr><th>Batch</th><td>${rec["Batch"]}</td></tr>
+            <tr><th>Course</th><td>${rec["Course"]}</td></tr>
+            <tr><th>Date of Issue</th><td>${rec["Date of Issue"]}</td></tr>
+          </table>
+
+          <h3 style="margin-top:25px; color:#4F0A5A;">Subject Marks</h3>
+          <table>
+            <tr><th>Subject</th><th>Marks</th></tr>
+            ${subjectsHTML || `<tr><td colspan="2">No subject data available</td></tr>`}
+            <tr><th>Total</th><td>${rec["Total"] || "—"}</td></tr>
+            <tr><th>Out of</th><td>${rec["Out of"] || "—"}</td></tr>
+            <tr><th>Grade</th><td>${rec["Grade"] || "—"}</td></tr>
+          </table>
+        `;
+      } catch (err) {
+        document.getElementById("result").innerHTML = `<p class="notfound">⚠️ Error loading data</p>`;
+        console.error(err);
       }
-      document.getElementById("result").innerHTML = `
-        <div class="card">
-          <table>
-            <tr><th>नाम</th><td>${rec["Name"]}</td></tr>
-            <tr><th>पिता का नाम</th><td>${rec["Father Name"]}</td></tr>
-            <tr><th>आईडी</th><td>${rec["Student id"]}</td></tr>
-            <tr><th>रोल</th><td>${rec["Roll No"]}</td></tr>
-            <tr><th>कक्षा</th><td>${rec["Class"]}</td></tr>
-            <tr><th>बैच</th><td>${rec["Batch"]}</td></tr>
-            <tr><th>कोर्स</th><td>${rec["Course"]}</td></tr>
-            <tr><th>परिणाम तिथि</th><td>${rec["Date of Issue"]}</td></tr>
-          </table>
-          <h3 style="color:#6a1b9a;">विषयवार अंक</h3>
-          <table>
-            <tr><th>विषय</th><th>अंक</th></tr>
-            ${subjects || `<tr><td colspan="2">अंक डेटा उपलब्ध नहीं</td></tr>`}
-            <tr><th>कुल</th><td>${rec["Total"]}</td></tr>
-            <tr><th>कुल में से</th><td>${rec["Out of"]}</td></tr>
-            <tr><th>ग्रेड</th><td>${rec["Grade"]}</td></tr>
-          </table>
-          <button onclick="window.print()">🖨️ प्रिंट / PDF</button>
-        </div>`;
     }
 
-    (async () => {
-      if (!id) {
-        document.getElementById("result").innerHTML = `<p class="notfound">अमान्य/गायब आईडी। लिंक स्वरूप: result.html?id=OSD_025080013</p>`;
-        return;
-      }
-      const data = await fetchData();
-      const rec = data.find(r => r["Student id"].trim().toLowerCase() === id.trim().toLowerCase());
-      if (rec) showRecord(rec);
-      else document.getElementById("result").innerHTML = `<p class="notfound">अमान्य या रिकॉर्ड नहीं मिला</p>`;
-    })();
+    load();
   </script>
 </body>
 </html>
-
