@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orbital Skill Development · Result Card</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbital Skill Development · Result</title>
   <style>
     body {
-      font-family: "Poppins", Arial, sans-serif;
-      background: #f8f7fb;
+      font-family: "Inter", sans-serif;
+      background: #f8f5ff;
       margin: 0;
       padding: 20px;
       color: #333;
@@ -15,30 +15,26 @@
     .wrap {
       max-width: 850px;
       margin: 30px auto;
-      background: #fff;
+      background: white;
       border-radius: 16px;
       padding: 25px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
     }
-    header {
+    h1 {
       text-align: center;
-      margin-bottom: 25px;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 26px;
       color: #4F0A5A;
+      margin-bottom: 5px;
     }
-    header p {
-      margin: 5px 0 0;
-      font-size: 16px;
-      color: #777;
-      font-weight: 500;
+    h2 {
+      text-align: center;
+      color: #666;
+      font-weight: 400;
+      margin-top: 0;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ddd;
@@ -52,11 +48,11 @@
     .notfound {
       color: red;
       text-align: center;
-      font-weight: bold;
       margin: 20px 0;
+      font-weight: bold;
     }
     .btn {
-      margin-top: 20px;
+      margin-top: 15px;
       background: #4F0A5A;
       color: white;
       border: none;
@@ -64,88 +60,144 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    .btn.secondary {
+      background: #888;
+    }
     footer {
       text-align: center;
       margin-top: 20px;
       color: #777;
-      font-size: 13px;
+      font-size: 14px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <h1>Orbital Skill Development</h1>
-      <p>Result Card</p>
-    </header>
+    <h1>Orbital Skill Development</h1>
+    <h2>Result Card</h2>
 
-    <div id="result"><p style="text-align:center;color:#777;">Loading data...</p></div>
+    <div id="result"></div>
 
-    <button class="btn" onclick="window.print()">🖨️ Print / PDF</button>
+    <div id="actions" style="text-align:center;">
+      <button class="btn" id="editBtn">✏️ Change Subjects</button>
+      <button class="btn" onclick="window.print()">🖨️ Print / PDF</button>
+    </div>
   </div>
 
-  <footer>© 2025 Orbital Skill Development | Powered by osifbd.github.io</footer>
+  <footer>© 2025 Orbital Skill Development</footer>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const studentId = params.get('id');
-    // ✅ Your working Google Sheet CSV link
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2MpDA6ryyZb68pkzM6ZABrkuqdT3_-6Y2mR9qu8zp6nqTWcUmXzkGRiQizEOAfy4HBPzv_zILRXN-/pub?gid=0&single=true&output=csv";
+    const sheetUrl =
+      "https://docs.google.com/spreadsheets/d/1vpWiNeyz4YUDSkTsgrekglJts1cP8ByolR-QnOHzwo0/gviz/tq?tqx=out:csv";
+    const scriptUrl =
+      "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE"; // ⚠️ Replace with deployed Google Apps Script link
 
     async function load() {
-      try {
-        const res = await fetch(sheetUrl);
-        const text = await res.text();
-        const rows = text.trim().split('\n').map(r => r.split(','));
-        const headers = rows.shift().map(h => h.trim());
-        const data = rows.map(r => {
-          const obj = {};
-          headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : "");
-          return obj;
+      const res = await fetch(sheetUrl);
+      const text = await res.text();
+      const rows = text.trim().split('\n').map(r => r.split(','));
+      const headers = rows.shift().map(h => h.trim());
+      const data = rows.map(r => {
+        const obj = {};
+        headers.forEach((h, i) => (obj[h] = r[i] ? r[i].trim() : ""));
+        return obj;
+      });
+
+      const rec = data.find(r => r["Student id"] === studentId);
+      const container = document.getElementById("result");
+      if (!rec) {
+        container.innerHTML = `<p class="notfound">❌ Invalid or Record not found</p>`;
+        return;
+      }
+
+      window.currentRecord = rec; // Save globally for editing later
+
+      let subjectsHTML = "";
+      for (let i = 1; i <= 10; i++) {
+        const sub = rec[`Subject ${i}`];
+        const marks = rec[`Marks ${i}`];
+        if (sub && marks) {
+          subjectsHTML += `<tr><td>${sub}</td><td>${marks}</td></tr>`;
+        }
+      }
+
+      container.innerHTML = `
+        <table>
+          <tr><th>Name</th><td>${rec["Name"]}</td></tr>
+          <tr><th>Father Name</th><td>${rec["Father Name"]}</td></tr>
+          <tr><th>Student ID</th><td>${rec["Student id"]}</td></tr>
+          <tr><th>Course</th><td>${rec["Course"]}</td></tr>
+          <tr><th>Grade</th><td>${rec["Grade"]}</td></tr>
+          <tr><th>Date of Issue</th><td>${rec["Date of Issue"]}</td></tr>
+        </table>
+
+        <h3 style="margin-top:20px;color:#4F0A5A;">Subject-wise Marks</h3>
+        <table id="marksTable">
+          <tr><th>Subject</th><th>Marks</th></tr>
+          ${subjectsHTML}
+          <tr><th>Total</th><td>${rec["Total"]}</td></tr>
+          <tr><th>Out of</th><td>${rec["Out of"]}</td></tr>
+        </table>
+      `;
+    }
+
+    document.getElementById("editBtn").onclick = () => {
+      const table = document.getElementById("marksTable");
+      if (!window.currentRecord) return alert("No record loaded!");
+
+      let editable = "";
+      for (let i = 1; i <= 10; i++) {
+        const sub = window.currentRecord[`Subject ${i}`] || "";
+        const marks = window.currentRecord[`Marks ${i}`] || "";
+        editable += `
+          <tr>
+            <td><input type="text" value="${sub}" placeholder="Subject ${i}" /></td>
+            <td><input type="text" value="${marks}" placeholder="Marks" /></td>
+          </tr>`;
+      }
+
+      table.innerHTML = `
+        <tr><th>Subject</th><th>Marks</th></tr>
+        ${editable}
+        <tr><td colspan="2" style="text-align:center;">
+          <button class="btn" id="saveBtn">💾 Save Changes</button>
+          <button class="btn secondary" onclick="load()">❌ Cancel</button>
+        </td></tr>
+      `;
+
+      document.getElementById("saveBtn").onclick = async () => {
+        const rows = table.querySelectorAll("tr");
+        const subjects = [];
+        rows.forEach((r, i) => {
+          if (i === 0) return;
+          const cells = r.querySelectorAll("input");
+          if (cells.length) {
+            const sub = cells[0].value.trim();
+            const marks = cells[1].value.trim();
+            if (sub) subjects.push({ subject: sub, marks });
+          }
         });
 
-        const rec = data.find(r => (r["Student id"] || "").toLowerCase() === (studentId || "").toLowerCase());
-        const container = document.getElementById("result");
-
-        if (!rec) {
-          container.innerHTML = `<p class="notfound">❌ Invalid or record not found (${studentId})</p>`;
-          return;
-        }
-
-        // Subjects & Marks — auto-detect how many exist
-        let subjectsHTML = "";
-        for (let i = 1; i <= 10; i++) {
-          const subj = rec[`Subject ${i}`];
-          const mark = rec[`Marks ${i}`];
-          if (subj && mark) subjectsHTML += `<tr><td>${subj}</td><td>${mark}</td></tr>`;
-        }
-
-        container.innerHTML = `
-          <table>
-            <tr><th>Student Name</th><td>${rec["Name"]}</td></tr>
-            <tr><th>Father's Name</th><td>${rec["Father Name"]}</td></tr>
-            <tr><th>Student ID</th><td>${rec["Student id"]}</td></tr>
-            <tr><th>Roll No</th><td>${rec["Roll No"]}</td></tr>
-            <tr><th>Class</th><td>${rec["Class"]}</td></tr>
-            <tr><th>Batch</th><td>${rec["Batch"]}</td></tr>
-            <tr><th>Course</th><td>${rec["Course"]}</td></tr>
-            <tr><th>Date of Issue</th><td>${rec["Date of Issue"]}</td></tr>
-          </table>
-
-          <h3 style="margin-top:25px; color:#4F0A5A;">Subject Marks</h3>
-          <table>
-            <tr><th>Subject</th><th>Marks</th></tr>
-            ${subjectsHTML || `<tr><td colspan="2">No subject data available</td></tr>`}
-            <tr><th>Total</th><td>${rec["Total"] || "—"}</td></tr>
-            <tr><th>Out of</th><td>${rec["Out of"] || "—"}</td></tr>
-            <tr><th>Grade</th><td>${rec["Grade"] || "—"}</td></tr>
-          </table>
-        `;
-      } catch (err) {
-        document.getElementById("result").innerHTML = `<p class="notfound">⚠️ Error loading data</p>`;
-        console.error(err);
-      }
-    }
+        const res = await fetch(scriptUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            studentId: window.currentRecord["Student id"],
+            subjects
+          }),
+        });
+        const msg = await res.text();
+        alert(msg);
+        load();
+      };
+    };
 
     load();
   </script>
